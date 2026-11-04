@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>STFC Crew Guides</title>
+<meta name="description" content="Free Star Trek Fleet Command crew pickers: hostiles, armadas, PvP, station fights and raiding. Fan-made, not affiliated with Scopely or Paramount.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Antonio:wght@500;700&family=Barlow+Semi+Condensed:wght@400;500;600&display=swap">
+<style>
+/* Layout: the crew guide's LCARS frame with two large launch panels and a credits strip. Single deliberate dark look. */
+:root{color-scheme:dark;--bg:#000;--surface:#0f0c0a;--ink:#f6ead9;--ink-2:#c3ae97;--line:#3b2e24;
+  --orange:#ff9c1a;--peach:#ffc98f;--lilac:#d49ad4;--red:#e8231f;--salmon:#ff7a5c;
+  --f-display:"Antonio","Arial Narrow","Roboto Condensed",sans-serif;--f-body:"Barlow Semi Condensed","Arial Narrow",system-ui,sans-serif}
+*{box-sizing:border-box}
+html,body{background:var(--bg);margin:0}
+body{color:var(--ink);font:16px/1.45 var(--f-body);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:max(14px,env(safe-area-inset-top,0px)) 32px}
+a{color:var(--peach)}
+:focus-visible{outline:3px solid var(--lilac);outline-offset:3px}
+.frame{max-width:980px;margin:0 auto;display:grid;grid-template-columns:28px minmax(0,1fr);gap:0 16px}
+.elbow{background:var(--orange);border-top-left-radius:36px;min-height:70px}
+.bar{display:flex;gap:6px;height:16px}
+.bar span{background:var(--orange);flex:1}.bar span:nth-child(2){flex:0 0 22%;background:var(--peach)}.bar span:nth-child(3){flex:0 0 34px;background:var(--lilac);border-radius:0 999px 999px 0}
+h1{font-family:var(--f-display);font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--orange);font-size:clamp(2rem,7vw,3rem);line-height:1;margin:14px 0 4px}
+.lead{margin:0;color:var(--ink-2);max-width:60ch}
+.rail{display:flex;flex-direction:column;gap:6px;padding-top:6px}
+.rail div{background:var(--peach);min-height:70px}.rail div:nth-child(2){background:var(--lilac);min-height:120px}.rail div:last-child{flex:1;background:var(--orange);border-bottom-left-radius:20px}
+main{display:flex;flex-direction:column;gap:22px;padding-top:22px;min-width:0}
+.tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.tool{display:flex;flex-direction:column;gap:8px;text-decoration:none;color:var(--ink);background:var(--surface);border-left:14px solid var(--c);border-radius:28px 0 0 28px;padding:16px 18px}
+.tool:hover{background:#18120d}
+.tool h2{font-family:var(--f-display);font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--c);margin:0;font-size:1.5rem;line-height:1.05}
+.tool p{margin:0;color:var(--ink-2)}
+.tool .go{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.1em;color:var(--c);font-size:.9rem;margin-top:auto}
+.g{--c:var(--orange)}.p{--c:var(--red)}
+h3{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.08em;color:var(--lilac);margin:0 0 6px;font-size:1rem}
+.credits{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;font-size:.92rem;color:var(--ink-2)}
+.credits p{margin:0 0 6px}
+.legal{font-size:.85rem;color:var(--ink-2);border-left:6px solid var(--line);padding-left:12px;max-width:75ch}
+@media (min-width:800px){.frame{grid-template-columns:110px minmax(0,1fr)}.elbow{border-top-left-radius:60px;min-height:96px}.bar{height:22px}}
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="elbow" aria-hidden="true"></div>
+  <header>
+    <div class="bar" aria-hidden="true"><span></span><span></span><span></span></div>
+    <h1>STFC Crew Guides</h1>
+    <p class="lead">Free crew pickers for Star Trek Fleet Command. Pick a fight, get a crew, and load your Spocks.Club export to see which officers you already have.</p>
+  </header>
+  <div class="rail" aria-hidden="true"><div></div><div></div><div></div></div>
+  <main>
+    <div class="tools">
+      <a class="tool g" href="crew-guide.html">
+        <h2>Hostile Crew Guide</h2>
+        <p>Hostiles, mission bosses, armadas, outposts, waves, mining, loot and more. English and French.</p>
+        <span class="go">Open the guide ▸</span>
+      </a>
+      <a class="tool p" href="incursion-pvp.html">
+        <h2>Incursion PvP Crews</h2>
+        <p>Step by step: pick your ship, bridge crew, below deck and Forbidden &amp; Chaos tech, then get a one-page summary to share. Load your roster to see only what you have.</p>
+        <span class="go">Open PvP crews ▸</span>
+      </a>
+    </div>
+
+    <section>
+      <h3>Credits</h3>
+      <div class="credits">
+        <div>
+          <p><b>stfc.phd</b>: ship data, the hostile list, and the officer and ship pages the tools link to. <a href="https://stfc.phd" target="_blank" rel="noopener">stfc.phd</a></p>
+        </div>
+        <div>
+          <p><b>Crew Suggestions M87</b> by StewieDøø &amp; the OT, used with permission.</p>
+          <p><b>Blue's Crews &amp; Clues</b> by BlueMandalorian &amp; team.</p>
+        </div>
+        <div>
+          <p><b>M92 Cheat Sheet</b>: officer abilities, fight tags and portraits.</p>
+          <p>Roster import reads exports from <a href="https://spocks.club" target="_blank" rel="noopener">Spocks.Club</a>. Your file is read in your browser and never uploaded.</p>
+        </div>
+      </div>
+    </section>
+
+    <p class="legal">Fan-made and free. Star Trek Fleet Command belongs to Scopely; Star Trek belongs to Paramount. This site isn't affiliated with either. Maintained by ImDoppler.</p>
+  </main>
+</div>
+</body>
+</html>
