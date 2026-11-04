@@ -2,8 +2,8 @@
 
 Free, fan-made crew pickers for Star Trek Fleet Command.
 
-- **Hostile Crew Guide** (`crew-guide.html`): hostiles, mission bosses, armadas, outposts, waves, mining, loot and more, in English and French.
-- **Incursion PvP Crews** (`incursion-pvp.html`): ship vs ship, hitting and defending stations, and raiding, with ship lists by class and officer portraits.
+- **Hostile Crew Guide** (`crew-guide.html`): hostiles, mission bosses, armadas, outposts, waves, mining, loot and more.
+- **Red Alert: PvP Crews** (`incursion-pvp.html`, switch on with the Red Alert button): ship vs ship, hitting and defending stations, and raiding, with ship lists by class and officer portraits.
 
 Both pages are single, self-contained HTML files. They need no server code and no build step.
 

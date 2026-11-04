@@ -1,0 +1,1126 @@
+<title>Incursion PvP Crews</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Antonio:wght@500;700&family=Barlow+Semi+Condensed:wght@400;500;600&display=swap">
+<style>
+/* Layout: the full app's LCARS frame (elbow, top bar, left rail) around mode buttons, crew panels and an officer roster. Two deliberate dark skins: Red Alert (default) and Klingon. */
+:root{
+  color-scheme:dark;
+  --bg:#000; --surface:#120707; --surface-2:#1c0b0b; --ink:#f7e6e0; --ink-2:#c9a39a; --line:#3f1d1a;
+  --a1:#e8231f; --a2:#ff7a5c; --a3:#b8102b; --a4:#ffb199; --hi:#ff3b30;
+  --ok:#9be59b; --warn:#ffc04d; --off:#6a5a57;
+  --r-c:#b9b1a8; --r-u:#8fdc8f; --r-r:#8fc8ff; --r-e:#d49ad4;
+  --f-display:"Antonio","Arial Narrow","Roboto Condensed",sans-serif;
+  --f-body:"Barlow Semi Condensed","Arial Narrow",system-ui,sans-serif;
+  --rail:30px; --cap-h:64px; --bar:16px; --round:999px; --elbow:40px;
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.42;margin:0}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--a4);outline-offset:2px}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;text-transform:uppercase;letter-spacing:.04em;line-height:1.05;margin:0;text-wrap:balance}
+
+/* frame */
+.lc{display:grid;grid-template-columns:var(--rail) minmax(0,1fr);grid-template-rows:auto 1fr;min-height:100%;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:10px 24px}
+.lc-corner{background:var(--a1);border-top-left-radius:var(--elbow);min-height:var(--cap-h)}
+.lc-top{position:relative;display:flex;flex-direction:column;min-width:0}
+.lc-bar{height:var(--bar);display:flex;gap:6px}
+.lc-bar span{height:100%;background:var(--a1)}
+.lc-bar span:nth-child(1){flex:1}
+.lc-bar span:nth-child(2){flex:0 0 18%;background:var(--a2)}
+.lc-bar span:nth-child(3){flex:0 0 34px;background:var(--a4);border-radius:0 var(--round) var(--round) 0}
+.lc-top::before,.lc-top::after{content:"";position:absolute;left:0;top:var(--bar);width:26px;height:26px}
+.lc-top::before{background:var(--a1)}
+.lc-top::after{background:var(--bg);border-top-left-radius:26px}
+.lc-head{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;padding:8px 0 10px 34px;min-width:0}
+.title{font-family:var(--f-display);font-weight:700;font-size:1.6rem;letter-spacing:.06em;text-transform:uppercase;color:var(--a1);line-height:1;min-width:0}
+.title small{display:block;font-size:.62rem;letter-spacing:.14em;color:var(--ink-2);margin-top:4px;font-weight:500}
+.alert{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-display);font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:.8rem;color:var(--bg);background:var(--hi);padding:3px 12px;border-radius:var(--round)}
+.alert::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--bg)}
+@media (prefers-reduced-motion:no-preference){.alert{animation:pulse 1.6s ease-in-out infinite}}
+@keyframes pulse{50%{opacity:.55}}
+.spacer{flex:1}
+.skin{display:flex;gap:4px;flex:none}
+.skin button{border:0;background:var(--line);color:var(--ink);font-family:var(--f-display);font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:6px 12px;font-size:.85rem}
+.skin button:first-child{border-radius:var(--round) 0 0 var(--round)}
+.skin button:last-child{border-radius:0 var(--round) var(--round) 0}
+.skin button[aria-pressed="true"]{background:var(--a2);color:#000}
+.lc-rail{display:flex;flex-direction:column;gap:6px;padding-top:6px}
+.lc-rail .seg{background:var(--a2);min-height:60px}
+.lc-rail .seg.a{background:var(--a3);min-height:110px}
+.lc-rail .seg.b{background:var(--a4);min-height:26px}
+.lc-rail .fill{flex:1;background:var(--a1);border-bottom-left-radius:22px;min-height:60px}
+.lc-main{min-width:0;padding:8px 0 0 14px;display:flex;flex-direction:column;gap:24px;max-width:980px}
+@media (min-width:900px){
+  :root{--rail:120px;--cap-h:92px;--bar:22px}
+  :root:not([data-alien]) .lc-corner{border-top-left-radius:70px}
+  .lc-top::before,.lc-top::after{width:40px;height:40px}
+  :root:not([data-alien]) .lc-top::after{border-top-left-radius:40px}
+  .lc-head{padding-left:52px} .title{font-size:2.2rem}
+  .lc-main{padding:14px 0 0 32px}
+}
+
+/* controls */
+.roster{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:.95rem;color:var(--ink-2)}
+.btn{position:relative;border:0;background:var(--a2);color:#000;font-family:var(--f-display);font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:9px 18px;border-radius:var(--round);font-size:.9rem;cursor:pointer}
+.btn.ghost{background:var(--line);color:var(--ink)}
+.btn input{position:absolute;width:1px;height:1px;opacity:0}
+.modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.modes button{border:0;background:var(--surface-2);color:var(--ink);font-family:var(--f-display);font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:12px 10px;font-size:1rem;text-align:left}
+.modes button:first-child{border-radius:var(--round) 0 0 var(--round);padding-left:22px}
+.modes button:last-child{border-radius:0 var(--round) var(--round) 0}
+.modes button[aria-pressed="true"]{background:var(--a1);color:#000}
+.tri{display:flex;flex-wrap:wrap;gap:4px 16px;font-family:var(--f-display);letter-spacing:.06em;text-transform:uppercase;font-size:.9rem;color:var(--ink-2);border-left:10px solid var(--a4);padding:4px 0 4px 12px}
+.tri b{color:var(--a4);font-weight:700}
+
+/* section headings: LCARS bar with label */
+.lhead{display:flex;align-items:center;gap:8px;min-width:0}
+.lhead::before{content:"";flex:0 0 26px;height:20px;border-radius:var(--round) 0 0 var(--round);background:var(--c,var(--a1))}
+.lhead::after{content:"";flex:1 1 20px;min-width:20px;height:20px;border-radius:0 var(--round) var(--round) 0;background:var(--c,var(--a1))}
+.lhead h2{color:var(--c,var(--a1));font-size:1.3rem;min-width:0}
+section{display:flex;flex-direction:column;gap:12px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:.85rem;color:var(--ink-2)}
+
+/* crews */
+.crews{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px}
+.crew{border-left:12px solid var(--a3);border-radius:24px 0 0 24px;background:var(--surface);padding:12px 14px 14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.crew.ret{border-left-color:var(--a2)}
+.crew h3{font-size:1.1rem;color:var(--a4)}
+.meta{font-family:var(--f-display);letter-spacing:.05em;text-transform:uppercase;font-size:.78rem;color:var(--ink-2);margin-top:3px}
+.seats{display:grid;gap:7px}
+.seat{display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:8px;align-items:center}
+.seat .role{font-family:var(--f-display);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2)}
+.seat:first-child .role{color:var(--a4)}
+.who{font-family:var(--f-display);font-weight:700;text-transform:uppercase;letter-spacing:.03em;font-size:1rem;min-width:0;overflow-wrap:anywhere}
+.cond{display:block;font-family:var(--f-body);font-weight:400;text-transform:none;letter-spacing:0;font-size:.8rem;color:var(--ink-2)}
+.pill{font-family:var(--f-display);letter-spacing:.06em;text-transform:uppercase;font-size:.72rem;padding:1px 9px;border:2px solid var(--line);border-radius:var(--round);white-space:nowrap}
+.p-Y{border-color:var(--ok);color:var(--ok)} .p-C{border-color:var(--warn);color:var(--warn)} .p-N{border-color:var(--off);color:var(--off)}
+.rank{font-family:var(--f-display);font-size:.72rem;letter-spacing:.06em;padding:0 6px;border-radius:4px;margin-left:6px;background:var(--line);color:var(--ink-2);vertical-align:2px}
+.rank.have{background:var(--ok);color:#000} .rank.miss{background:var(--hi);color:#000}
+.bd{font-size:.88rem;color:var(--ink-2)} .bd b{color:var(--ink);font-weight:600}
+details{background:var(--surface-2);border-radius:14px;padding:8px 12px;font-size:.88rem;color:var(--ink-2)}
+summary{cursor:pointer;font-family:var(--f-display);text-transform:uppercase;letter-spacing:.08em;color:var(--a4);list-style:none}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"▸ "} details[open] summary::before{content:"▾ "}
+details p{margin:6px 0 0}
+
+/* officer finder */
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.tools input[type=search],.tools select{min-width:0;padding:10px 16px;border:3px solid var(--a3);border-radius:var(--round);background:var(--bg);font-size:1rem;font-weight:600}
+.tools input[type=search]{flex:1 1 240px}
+.tools label{display:flex;gap:6px;align-items:center;font-size:.92rem;color:var(--ink-2)}
+.tools input[type=checkbox]{accent-color:var(--a1);width:18px;height:18px}
+.list{display:flex;flex-direction:column;gap:8px}
+.off{display:grid;grid-template-columns:minmax(150px,220px) minmax(0,1fr);gap:8px 16px;padding:10px 12px;background:var(--surface);border-left:8px solid var(--r,var(--line));border-radius:14px 0 0 14px}
+.rC{--r:var(--r-c)} .rU{--r:var(--r-u)} .rR{--r:var(--r-r)} .rE{--r:var(--r-e)}
+.nm{font-family:var(--f-display);font-weight:700;text-transform:uppercase;letter-spacing:.03em;font-size:1.02rem;min-width:0}
+.grp{font-family:var(--f-display);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);margin-top:2px}
+.abs{display:flex;flex-direction:column;gap:5px;min-width:0}
+.ab{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;align-items:baseline;font-size:.93rem}
+.ab .k{font-family:var(--f-display);font-weight:700;font-size:.75rem;width:24px;text-align:center;border-radius:var(--round);border:2px solid}
+.ab .k.p-Y{border-color:var(--ok)} .ab .k.p-C{border-color:var(--warn)}
+.ab .tx{overflow-wrap:anywhere}
+.ab .cl{color:var(--ink-2);font-size:.84rem}
+.tag{font-family:var(--f-display);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;padding:0 7px;border-radius:var(--round);background:var(--a3);color:var(--ink);margin-left:6px;white-space:nowrap}
+.st{font-size:.84rem;color:var(--a4)}
+.empty{border:3px dashed var(--line);border-radius:22px;padding:16px;color:var(--ink-2)}
+.more{align-self:flex-start}
+footer{font-size:.82rem;color:var(--ink-2);border-left:6px solid var(--line);padding-left:12px;display:flex;flex-direction:column;gap:6px;max-width:75ch}
+footer a{color:var(--a4)}
+
+
+/* ---- additions: look picker, four modes, portraits, ships, credits ---- */
+.skinpick{display:flex;align-items:center;gap:8px;font-family:var(--f-display);letter-spacing:.1em;text-transform:uppercase;font-size:.78rem;color:var(--ink-2)}
+.skinpick select{border:0;background:var(--a2);color:#000;font-family:var(--f-display);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:.9rem;padding:7px 14px;border-radius:var(--round)}
+.modes{grid-template-columns:repeat(4,minmax(0,1fr))}
+.face{flex:none;width:44px;height:44px;border-radius:12px;object-fit:cover;background:var(--surface-2);border:2px solid var(--r,var(--line));display:grid;place-items:center;font-family:var(--f-display);font-weight:700;font-size:.85rem;color:var(--ink-2)}
+.seat{grid-template-columns:44px minmax(0,1fr) auto}
+.seat .role{display:block;font-size:.66rem}
+.who a,.nm a,.shn a{color:inherit;text-decoration:none;border-bottom:1px dotted var(--ink-2)}
+.who a:hover,.nm a:hover,.shn a:hover{border-bottom-color:var(--a4)}
+.offhead{display:flex;gap:10px;align-items:flex-start;min-width:0}
+.offhead .face{width:52px;height:52px}
+.shipbtn{align-self:flex-start;border:0;background:none;color:var(--a4);font-family:var(--f-display);letter-spacing:.08em;text-transform:uppercase;font-size:.8rem;padding:2px 0;cursor:pointer;border-bottom:2px solid var(--a4)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{border:0;background:var(--surface-2);color:var(--ink);font-family:var(--f-display);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:.88rem;padding:8px 14px;border-radius:var(--round)}
+.chips button[aria-pressed="true"]{background:var(--a1);color:#000}
+.hint{margin:0;font-size:.85rem;color:var(--ink-2);max-width:75ch}
+.ships{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.ship{background:var(--surface);border-left:8px solid var(--a3);border-radius:14px 0 0 14px;padding:10px 14px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.shn{font-family:var(--f-display);font-weight:700;text-transform:uppercase;letter-spacing:.04em;font-size:1.05rem;color:var(--a4)}
+.shm{font-family:var(--f-display);font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.shs{font-size:.86rem;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.sha{font-size:.88rem;overflow-wrap:anywhere}
+.sha b{font-weight:600}
+.credits{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.credit{background:var(--surface);border-left:6px solid var(--a2);border-radius:12px 0 0 12px;padding:10px 14px;font-size:.9rem;display:flex;flex-direction:column;gap:4px;min-width:0}
+.credit h3{font-size:.95rem;color:var(--a4)}
+.credit a{color:var(--a4)}
+.credit ul{margin:2px 0 0;padding-left:18px}
+@media (max-width:560px){.modes{grid-template-columns:repeat(2,minmax(0,1fr))}.modes button,.modes button:first-child,.modes button:last-child{border-radius:0;padding-left:12px}.ships{grid-template-columns:minmax(0,1fr)}}
+
+/* ---- species looks. Shared shape system: every alien look sets these tokens ----
+   --pf frame colour, --pfr frame colour for highlighted crews, --pw frame width, --pclip panel clip, --prad panel radius,
+   --bclip control clip, --brad control radius, --hd heading colour, --glyph label colour, --bgimg backdrop */
+:root[data-alien] body{background-color:var(--bg);background-image:var(--bgimg,none)}
+:root[data-alien] .title{color:var(--hd)}
+:root[data-alien] .title small,:root[data-alien] .meta,:root[data-alien] .grp,:root[data-alien] .seat .role,:root[data-alien] .shm,:root[data-alien] summary,:root[data-alien] .st{color:var(--glyph)}
+:root[data-alien] .crew h3,:root[data-alien] .lhead h2,:root[data-alien] .shn,:root[data-alien] .credit h3{color:var(--hd)}
+:root[data-alien] .crew,:root[data-alien] .off,:root[data-alien] .ship,:root[data-alien] .credit{position:relative;isolation:isolate;border:0;border-radius:0;background:none;padding:16px 18px 18px 20px}
+:root[data-alien] :is(.crew,.off,.ship,.credit)::before,:root[data-alien] :is(.crew,.off,.ship,.credit)::after{content:"";position:absolute;z-index:-1;clip-path:var(--pclip,none);border-radius:var(--prad,0)}
+:root[data-alien] :is(.crew,.ship,.credit)::before{inset:0;background:var(--pf)}
+:root[data-alien] .crew.ret::before{background:var(--pfr)}
+:root[data-alien] :is(.crew,.ship,.credit)::after{inset:var(--pw,2px);background:var(--surface)}
+:root[data-alien] .off{padding:12px 14px 12px 22px}
+:root[data-alien] .off::before{inset:0;background:linear-gradient(90deg,var(--r,var(--line)) 8px,var(--line) 8px)}
+:root[data-alien] .off::after{inset:1px 1px 1px 8px;background:var(--surface)}
+:root[data-alien] :is(.alert,.btn,.skinpick select,.modes button,.chips button,.pill,.ab .k,.tag,.rank,.tools input[type=search],.tools select,details){clip-path:var(--bclip,none);border-radius:var(--brad,0)}
+:root[data-alien] .modes button:is(:first-child,:last-child){border-radius:var(--brad,0)}
+:root[data-alien] .modes{gap:3px}
+:root[data-alien] .modes button{padding-left:20px}
+:root[data-alien] .modes button[aria-pressed="true"],:root[data-alien] .chips button[aria-pressed="true"]{background:var(--a1);color:#000}
+:root[data-alien] .alert{background:var(--hi);color:#000}
+:root[data-alien] .skinpick select{background:var(--a4)}
+:root[data-alien] :is(.pill,.ab .k,.tag,.rank){border:0;color:#000;padding-inline:10px}
+:root[data-alien] .ab .k{width:30px;padding-inline:0}
+:root[data-alien] .p-Y{background:var(--ok)} :root[data-alien] .p-C{background:var(--warn)} :root[data-alien] .p-N{background:var(--off)}
+:root[data-alien] .tag{background:var(--a1)}
+:root[data-alien] .rank{background:var(--line);color:var(--ink)}
+:root[data-alien] .rank.have{background:var(--ok);color:#000} :root[data-alien] .rank.miss{background:var(--hi);color:#000}
+:root[data-alien] .tools input[type=search],:root[data-alien] .tools select{border-color:var(--a1);padding-inline:18px}
+:root[data-alien] .tools input[type=checkbox]{accent-color:var(--a1)}
+:root[data-alien] .face{border-radius:var(--frad,4px)}
+:root[data-alien] .tri{border-left:0;padding-left:0}
+:root[data-alien] .tri span::before{content:"";display:inline-block;width:10px;height:10px;margin-right:6px;background:var(--a4);clip-path:var(--mark,none);border-radius:var(--markr,0)}
+:root[data-alien] .tri b,:root[data-alien] .shipbtn{color:var(--a4)}
+:root[data-alien] .lhead::before,:root[data-alien] .lhead::after{border-radius:0}
+:root[data-alien] .lc-top::after{border-radius:0}
+:root[data-alien] footer{border-left-color:var(--a3)}
+:root[data-alien] .empty{border-radius:var(--brad,0);border-color:var(--a3)}
+
+/* Klingon: black field, red/orange/amber, triangle clusters, cut-corner outlines, bladed spines with teeth */
+:root[data-skin="klingon"]{--bg:#000;--surface:#0d0302;--surface-2:#1a0604;--ink:#f6e3cf;--ink-2:#d9a066;--line:#5a1408;
+  --a1:#e3260d;--a2:#f2780f;--a3:#a3150a;--a4:#f7b21b;--hi:#e3260d;--glyph:#c9df3a;--hd:#f7b21b;--round:0px;--elbow:0px;
+  --pf:#f2780f;--pfr:#f7b21b;--pw:2px;--pclip:polygon(16px 0,calc(100% - 16px) 0,100% 16px,100% calc(100% - 16px),calc(100% - 16px) 100%,16px 100%,0 calc(100% - 16px),0 16px);
+  --bclip:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%);--mark:polygon(50% 0,100% 100%,0 100%);
+  --bgimg:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='48.5'%3E%3Cpath d='M0 0L14 24.25L28 0M0 48.5L14 24.25L28 48.5M0 24.25H28' fill='none' stroke='%23e3260d' stroke-opacity='.09'/%3E%3C/svg%3E")}
+:root[data-skin="klingon"] .lc-corner{clip-path:polygon(45% 0,100% 0,100% 100%,0 100%,0 45%)}
+:root[data-skin="klingon"] .lc-bar span:nth-child(1){clip-path:polygon(0 0,100% 0,calc(100% - 10px) 100%,0 100%)}
+:root[data-skin="klingon"] .lc-bar span:nth-child(2){background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='16' preserveAspectRatio='none'%3E%3Cpath d='M1 16L9 0L17 16Z' fill='%23f7b21b'/%3E%3C/svg%3E") repeat-x left/18px 100%}
+:root[data-skin="klingon"] .lc-bar span:nth-child(3){background:var(--a2);border-radius:0;clip-path:polygon(0 0,100% 50%,0 100%)}
+:root[data-skin="klingon"] .lc-top::after{clip-path:polygon(100% 0,100% 100%,0 100%)}
+:root[data-skin="klingon"] .lc-rail .seg{background:var(--a4);clip-path:polygon(0 0,100% 0,100% 20%,70% 30%,100% 40%,100% 60%,70% 70%,100% 80%,100% 100%,0 100%)}
+:root[data-skin="klingon"] .lc-rail .seg.a{background:var(--a2);clip-path:polygon(0 0,100% 0,100% 12%,72% 18%,100% 24%,100% 36%,72% 42%,100% 48%,100% 60%,72% 66%,100% 72%,100% 100%,0 100%)}
+:root[data-skin="klingon"] .lc-rail .seg.b{background:var(--a3);clip-path:polygon(0 0,100% 50%,0 100%)}
+:root[data-skin="klingon"] .lc-rail .fill{border-radius:0;clip-path:polygon(0 0,100% 0,100% calc(100% - 60px),0 100%)}
+:root[data-skin="klingon"] .lhead::before{flex:0 0 22px;clip-path:polygon(0 50%,100% 0,100% 100%)}
+:root[data-skin="klingon"] .lhead::after{height:12px;clip-path:polygon(0 0,calc(100% - 22px) 0,100% 50%,calc(100% - 22px) 100%,0 100%)}
+
+/* Romulan: teal and sea-green on black, magenta highlights, stepped outline frames, forward-slanted blocks */
+:root[data-skin="romulan"]{--bg:#000;--surface:#03110f;--surface-2:#072019;--ink:#e3f5ee;--ink-2:#8fc2b0;--line:#14443b;
+  --a1:#1fb3ad;--a2:#3e9a6e;--a3:#15604b;--a4:#e8357c;--hi:#e8357c;--glyph:#a9e9cb;--hd:#2fd0c8;--round:0px;--elbow:0px;
+  --pf:#1fb3ad;--pfr:#e8357c;--pw:2px;--pclip:polygon(0 0,100% 0,100% calc(100% - 22px),calc(100% - 22px) 100%,22px 100%,0 calc(100% - 22px));
+  --bclip:polygon(14px 0,100% 0,calc(100% - 14px) 100%,0 100%);--mark:polygon(30% 0,100% 0,70% 100%,0 100%);
+  --bgimg:linear-gradient(rgba(31,179,173,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(31,179,173,.06) 1px,transparent 1px);background-size:32px 32px}
+:root[data-skin="romulan"] body{background-size:32px 32px}
+:root[data-skin="romulan"] .lc-corner{clip-path:polygon(0 38%,38% 38%,38% 0,100% 0,100% 100%,0 100%)}
+:root[data-skin="romulan"] .lc-bar span:nth-child(2){background:repeating-linear-gradient(115deg,var(--a2) 0 16px,transparent 16px 22px)}
+:root[data-skin="romulan"] .lc-bar span:nth-child(3){background:var(--a4);border-radius:0;clip-path:polygon(30% 0,100% 0,70% 100%,0 100%)}
+:root[data-skin="romulan"] .lc-top::after{clip-path:polygon(100% 0,100% 100%,0 100%)}
+:root[data-skin="romulan"] .lc-rail .seg{background:var(--a2);clip-path:polygon(0 12%,100% 0,100% 88%,0 100%)}
+:root[data-skin="romulan"] .lc-rail .seg.a{background:var(--a1);clip-path:polygon(0 8%,100% 0,100% 92%,0 100%)}
+:root[data-skin="romulan"] .lc-rail .seg.b{background:#d8f5ea;clip-path:polygon(0 20%,100% 0,100% 80%,0 100%)}
+:root[data-skin="romulan"] .lc-rail .fill{border-radius:0;clip-path:polygon(0 0,100% 0,100% 100%,40% 100%,40% calc(100% - 30px),0 calc(100% - 30px))}
+:root[data-skin="romulan"] .lhead::before{flex:0 0 30px;height:18px;background:var(--a4);clip-path:polygon(35% 0,100% 0,65% 100%,0 100%)}
+:root[data-skin="romulan"] .lhead::after{height:4px}
+
+/* Cardassian: cyan and dusty pink on black inside heavy brown bezels, sheared tiles, hexagon field */
+:root[data-skin="cardassian"]{--bg:#000;--surface:#100809;--surface-2:#1d1011;--ink:#f6e8ec;--ink-2:#c9a3ae;--line:#4d2827;
+  --a1:#6fdce8;--a2:#e9a3bf;--a3:#6a3530;--a4:#f2d15c;--hi:#e9a3bf;--glyph:#86e6f0;--hd:#6fdce8;--round:0px;--elbow:0px;
+  --pf:#6a3530;--pfr:#e9a3bf;--pw:6px;--prad:24px 24px 8px 8px;--frad:10px 10px 3px 3px;
+  --bclip:polygon(0 0,calc(100% - 10px) 0,100% 100%,10px 100%);--mark:polygon(0 0,70% 0,100% 100%,30% 100%);
+  --bgimg:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='42' height='72.75'%3E%3Cpath d='M21 0L42 12.1V36.4L21 48.5L0 36.4V12.1Z M21 48.5V72.75' fill='none' stroke='%23b0684f' stroke-opacity='.12'/%3E%3C/svg%3E")}
+:root[data-skin="cardassian"] .lc-corner{background:var(--a3);border-top-left-radius:28px}
+:root[data-skin="cardassian"] .lc-top::before{background:var(--a3)}
+:root[data-skin="cardassian"] .lc-top::after{border-top-left-radius:18px}
+:root[data-skin="cardassian"] .lc-bar span:nth-child(1){background:var(--a3)}
+:root[data-skin="cardassian"] .lc-bar span:nth-child(2){background:repeating-linear-gradient(65deg,var(--a1) 0 14px,transparent 14px 20px)}
+:root[data-skin="cardassian"] .lc-bar span:nth-child(3){background:var(--a4);border-radius:0;clip-path:polygon(0 0,70% 0,100% 100%,30% 100%)}
+:root[data-skin="cardassian"] .lc-rail .seg{background:var(--a2);clip-path:polygon(0 0,100% 15%,100% 100%,0 85%)}
+:root[data-skin="cardassian"] .lc-rail .seg.a{background:var(--a1);clip-path:polygon(0 0,100% 10%,100% 100%,0 90%)}
+:root[data-skin="cardassian"] .lc-rail .seg.b{background:var(--a4)}
+:root[data-skin="cardassian"] .lc-rail .fill{background:var(--a3);border-bottom-left-radius:28px}
+:root[data-skin="cardassian"] .lhead::before{flex:0 0 34px;background:var(--a1);clip-path:polygon(0 0,70% 0,100% 100%,30% 100%)}
+:root[data-skin="cardassian"] .lhead::after{height:5px;background:var(--a2)}
+:root[data-skin="cardassian"] .modes button[aria-pressed="true"],:root[data-skin="cardassian"] .chips button[aria-pressed="true"]{background:var(--a1)}
+
+/* Bajoran: teal and parchment tan on black, copper accents, rounded frames, circles and orbits */
+:root[data-skin="bajoran"]{--bg:#020605;--surface:#071512;--surface-2:#0d221d;--ink:#f1e7d6;--ink-2:#c6b395;--line:#1f4038;
+  --a1:#1fa38a;--a2:#e8cba2;--a3:#8b5a36;--a4:#6fe3cf;--hi:#e8cba2;--glyph:#e8cba2;--hd:#6fe3cf;--round:999px;--elbow:60px;
+  --pf:#1fa38a;--pfr:#e8cba2;--pw:2px;--prad:26px;--brad:999px;--frad:50%;--markr:50%;
+  --bgimg:repeating-radial-gradient(circle at 100% 0,transparent 0 46px,rgba(31,163,138,.07) 46px 47px)}
+:root[data-skin="bajoran"] .lc-corner{background:var(--a3);border-top-left-radius:60px}
+:root[data-skin="bajoran"] .lc-top::before{background:var(--a3)}
+:root[data-skin="bajoran"] .lc-top::after{border-top-left-radius:26px}
+:root[data-skin="bajoran"] .lc-bar span:nth-child(1){background:var(--a3)}
+:root[data-skin="bajoran"] .lc-bar span:nth-child(2){background:radial-gradient(circle,var(--a2) 0 5px,transparent 6px) repeat-x left/18px 100%}
+:root[data-skin="bajoran"] .lc-bar span:nth-child(3){background:var(--a1)}
+:root[data-skin="bajoran"] .lc-rail .seg{background:var(--a2);border-radius:999px}
+:root[data-skin="bajoran"] .lc-rail .seg.a{background:var(--a1);border-radius:999px}
+:root[data-skin="bajoran"] .lc-rail .seg.b{background:transparent;border:3px solid var(--a2);border-radius:50%;aspect-ratio:1;min-height:0}
+:root[data-skin="bajoran"] .lc-rail .fill{background:var(--a3);border-radius:999px 999px 999px 40px}
+:root[data-skin="bajoran"] .lhead::before{flex:0 0 20px;height:20px;background:transparent;border:3px solid var(--a2);border-radius:50%}
+:root[data-skin="bajoran"] .lhead::after{height:3px;border-radius:999px;background:var(--a1)}
+:root[data-skin="bajoran"] .modes button:is(:first-child,:last-child),:root[data-skin="bajoran"] .modes button{border-radius:999px}
+
+/* Borg: thin glowing green lines on black, brass rings, crosshairs, hard square edges */
+:root[data-skin="borg"]{--bg:#000;--surface:#020a03;--surface-2:#081609;--ink:#d9f7d4;--ink-2:#8fbf88;--line:#1b3d1e;
+  --a1:#39d353;--a2:#8a7a35;--a3:#17451c;--a4:#b8f5a6;--hi:#39d353;--glyph:#73e483;--hd:#39d353;--round:0px;--elbow:0px;
+  --pf:#2c9c3e;--pfr:#8a7a35;--pw:1px;--frad:50%;--markr:50%;
+  --bgimg:radial-gradient(circle at 85% 8%,rgba(57,211,83,.10),transparent 40%),linear-gradient(rgba(57,211,83,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(57,211,83,.05) 1px,transparent 1px)}
+:root[data-skin="borg"] body{background-size:auto,24px 24px,24px 24px}
+:root[data-skin="borg"] .lc-corner{background:radial-gradient(circle at 70% 70%,transparent 0 22px,var(--a2) 22px 26px,transparent 26px),linear-gradient(var(--a1),var(--a1)) 0 0/4px 100% no-repeat,linear-gradient(var(--a1),var(--a1)) 0 0/100% 4px no-repeat}
+:root[data-skin="borg"] .lc-top::before,:root[data-skin="borg"] .lc-top::after{display:none}
+:root[data-skin="borg"] .lc-bar{height:4px;margin-top:0}
+:root[data-skin="borg"] .lc-bar span{background:var(--a1)}
+:root[data-skin="borg"] .lc-bar span:nth-child(2){background:var(--a2)}
+:root[data-skin="borg"] .lc-bar span:nth-child(3){background:var(--a4);border-radius:0}
+:root[data-skin="borg"] .lc-rail{gap:0;background:linear-gradient(var(--a1),var(--a1)) 0 0/4px 100% no-repeat}
+:root[data-skin="borg"] .lc-rail .seg,:root[data-skin="borg"] .lc-rail .seg.a,:root[data-skin="borg"] .lc-rail .seg.b,:root[data-skin="borg"] .lc-rail .fill{background:radial-gradient(circle at 2px 50%,var(--a4) 0 4px,transparent 5px),radial-gradient(circle at 2px 50%,transparent 0 10px,var(--a2) 10px 12px,transparent 13px);border-radius:0}
+:root[data-skin="borg"] .crew::before,:root[data-skin="borg"] .ship::before{box-shadow:0 0 14px rgba(57,211,83,.25)}
+:root[data-skin="borg"] .btn,:root[data-skin="borg"] .skinpick select{background:transparent;color:var(--a1);border:1px solid var(--a1)}
+:root[data-skin="borg"] .modes button{border:1px solid var(--line)}
+:root[data-skin="borg"] .lhead::before{flex:0 0 22px;height:22px;background:radial-gradient(circle,var(--a1) 0 3px,transparent 4px 7px,var(--a1) 7px 9px,transparent 10px),linear-gradient(var(--a1),var(--a1)) center/100% 1px no-repeat,linear-gradient(var(--a1),var(--a1)) center/1px 100% no-repeat}
+:root[data-skin="borg"] .lhead::after{height:1px}
+
+/* Dominion: violet frames with arched tops, orchid and gold accents */
+:root[data-skin="dominion"]{--bg:#000;--surface:#0b0817;--surface-2:#161028;--ink:#efe8ff;--ink-2:#b3a6d9;--line:#30265f;
+  --a1:#5b4bc4;--a2:#d78bd9;--a3:#33287a;--a4:#f2a72c;--hi:#d78bd9;--glyph:#d9a6e0;--hd:#f2a72c;--round:12px;--elbow:0px;
+  --pf:#5b4bc4;--pfr:#d78bd9;--pw:6px;--prad:50% 50% 6px 6px/38px 38px 6px 6px;--brad:14px 14px 3px 3px;--frad:50% 50% 4px 4px;--mark:polygon(50% 0,100% 50%,50% 100%,0 50%)}
+:root[data-skin="dominion"] .crew,:root[data-skin="dominion"] .ship{padding-top:28px}
+:root[data-skin="dominion"] .lc-corner{background:var(--a1);border-top-left-radius:50% 70%}
+:root[data-skin="dominion"] .lc-top::before{background:var(--a1)}
+:root[data-skin="dominion"] .lc-bar span:nth-child(2){background:var(--a2)}
+:root[data-skin="dominion"] .lc-bar span:nth-child(3){background:var(--a4);border-radius:0 999px 999px 0}
+:root[data-skin="dominion"] .lc-rail .seg{background:var(--a2);border-radius:50% 50% 0 0/18px 18px 0 0}
+:root[data-skin="dominion"] .lc-rail .seg.a{background:var(--a3);border-radius:50% 50% 0 0/30px 30px 0 0}
+:root[data-skin="dominion"] .lc-rail .seg.b{background:var(--a4)}
+:root[data-skin="dominion"] .lc-rail .fill{background:var(--a1);border-radius:0 0 0 22px}
+:root[data-skin="dominion"] .lhead::before{flex:0 0 18px;height:18px;background:var(--a4);clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}
+:root[data-skin="dominion"] .lhead::after{height:8px;border-radius:999px;background:var(--a1)}
+:root[data-skin="dominion"] .modes button[aria-pressed="true"],:root[data-skin="dominion"] .chips button[aria-pressed="true"]{color:var(--ink)}
+
+
+[hidden]{display:none!important}
+/* ---- v4: steps, horizontal bridge, below deck, tech, builder, officers ---- */
+.tabs{display:flex;flex-wrap:wrap;gap:6px}
+.tabs button{flex:1 1 auto;border:0;background:var(--surface-2);color:var(--ink);font-family:var(--f-display);font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:10px 14px;font-size:.95rem;border-radius:var(--round)}
+.tabs button[aria-selected="true"]{background:var(--a1);color:#000}
+.tabs .num{display:inline-block;min-width:1.4em;margin-right:4px;opacity:.75}
+:root[data-alien] .tabs button{clip-path:var(--bclip,none);border-radius:var(--brad,0)}
+.sumbar{display:flex;flex-wrap:wrap;gap:4px 18px;font-family:var(--f-display);letter-spacing:.06em;text-transform:uppercase;font-size:.82rem;color:var(--ink-2);border-left:6px solid var(--a4);padding-left:10px}
+.sumbar b{color:var(--ink)}
+.view{display:flex;flex-direction:column;gap:18px}
+.q{font-family:var(--f-display);font-weight:700;text-transform:uppercase;letter-spacing:.04em;font-size:clamp(1.5rem,5vw,2.2rem);color:var(--a1);margin:0}
+.lead{margin:0;color:var(--ink-2);max-width:68ch}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.field{display:flex;flex-direction:column;gap:5px;min-width:0;flex:1 1 240px}
+.field>span{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.1em;font-size:.8rem;color:var(--ink-2)}
+.pick{width:100%;padding:11px 16px;border:3px solid var(--a3);border-radius:var(--round);background:var(--bg);color:var(--ink);font-size:1.02rem;font-weight:600}
+:root[data-alien] .pick{border-radius:var(--brad,0);border-color:var(--a1)}
+.lvl{width:7em;flex:none}
+.shipcard{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px 18px;align-items:center}
+.seats-big{font-family:var(--f-display);font-weight:700;font-size:2.6rem;line-height:1;color:var(--a4);text-align:right}
+.seats-big small{display:block;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);font-weight:500}
+.next{align-self:flex-start}
+.sub{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.1em;font-size:.85rem;color:var(--a4);margin:6px 0 -6px}
+.crewlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+.ctop{display:flex;gap:10px;align-items:flex-start;justify-content:space-between}
+.ctop>div{min-width:0}
+.dtog{flex:none;border:0;background:var(--line);color:var(--ink);font-family:var(--f-display);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:.75rem;padding:5px 11px;border-radius:var(--round)}
+:root[data-alien] .dtog{clip-path:var(--bclip,none);border-radius:var(--brad,0)}
+.ribbon{display:inline-block;font-family:var(--f-display);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;padding:1px 8px;border-radius:var(--round);background:var(--a4);color:#000;margin-bottom:4px}
+.ribbon.sec{background:var(--line);color:var(--ink)}
+.bridge3{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr) minmax(0,1fr);gap:8px;align-items:end}
+.s3{display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;min-width:0}
+.s3n{font-family:var(--f-display);font-weight:700;text-transform:uppercase;letter-spacing:.03em;font-size:.9rem;line-height:1.1;min-height:2.2em;display:flex;align-items:flex-end;justify-content:center;overflow-wrap:anywhere}
+.s3n a{color:inherit;text-decoration:none}
+.s3.cap .s3n{color:var(--a4);font-size:1rem}
+.s3 .face{width:68px;height:68px;border-radius:16px}
+.s3.cap .face{width:88px;height:88px;border-color:var(--a4);box-shadow:0 0 0 3px var(--bg),0 0 0 5px var(--a4)}
+.s3.miss .face{opacity:.4;filter:grayscale(1)}
+.s3b{display:flex;flex-wrap:wrap;gap:4px;justify-content:center}
+.s3b .rank{margin-left:0}
+.s3r{font-family:var(--f-display);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2)}
+.alts{font-size:.8rem;color:var(--ink-2)}
+.alts button{border:0;background:none;color:var(--a4);font:inherit;font-weight:600;padding:0;border-bottom:1px dotted var(--a4);cursor:pointer}
+.cdet{display:flex;flex-direction:column;gap:8px;font-size:.9rem;border-top:1px solid var(--line);padding-top:8px}
+.cdet .who2{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.05em;color:var(--a4);font-size:.82rem}
+.cfoot{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center}
+.usebtn{border:0;background:var(--a2);color:#000;font-family:var(--f-display);font-weight:700;letter-spacing:.07em;text-transform:uppercase;font-size:.85rem;padding:7px 14px;border-radius:var(--round)}
+.usebtn[aria-pressed="true"]{background:var(--ok)}
+:root[data-alien] .usebtn{clip-path:var(--bclip,none);border-radius:var(--brad,0)}
+.needhelp{display:flex;flex-wrap:wrap;gap:10px;align-items:center;border:3px dashed var(--line);border-radius:22px;padding:14px 16px}
+:root[data-alien] .needhelp{border-radius:var(--brad,0)}
+.bdrow{display:flex;flex-wrap:wrap;gap:10px}
+.bdpick{display:flex;flex-direction:column;align-items:center;gap:4px;width:84px;text-align:center;font-family:var(--f-display);text-transform:uppercase;font-size:.74rem;letter-spacing:.03em;line-height:1.1}
+.bdpick .face{width:60px;height:60px}
+.bdpick.empty .face{opacity:.25}
+.mini2{display:grid;grid-template-columns:44px minmax(0,1fr);gap:10px;align-items:start;padding:8px 0;border-top:1px solid var(--line)}
+.mini2:first-child{border-top:0}
+.mini2 .nm{font-size:.98rem}
+.mini2 .tx{font-size:.9rem}
+.why{font-size:.82rem;color:var(--a4)}
+.grpbox{background:var(--surface);border-radius:14px;padding:8px 14px}
+:root[data-alien] .grpbox{border-radius:var(--brad,0)}
+.grpbox>summary{display:flex;gap:10px;align-items:baseline;font-size:1rem}
+.grpbox>summary .cnt{color:var(--ink-2);font-family:var(--f-display);font-size:.85rem}
+.techgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.eff{font-size:.88rem;display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;align-items:baseline}
+.eff .t{font-family:var(--f-display);font-size:.72rem;letter-spacing:.06em;color:var(--ink-2);white-space:nowrap}
+.builder{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.note2{font-size:.88rem;color:var(--ink-2);border-left:6px solid var(--a3);padding-left:12px;max-width:72ch}
+@media (max-width:560px){.s3 .face{width:58px;height:58px}.s3.cap .face{width:74px;height:74px}.crewlist{grid-template-columns:minmax(0,1fr)}.seats-big{font-size:2rem}}
+
+.ribbon.rof{background:var(--ok);color:#000}
+.ribbon.warnr{background:var(--warn);color:#000}
+.rofline{font-size:.86rem;border-radius:10px;padding:6px 10px}
+.rofline.good{background:color-mix(in srgb,var(--ok) 14%,transparent);color:var(--ink)}
+.rofline.bad{background:color-mix(in srgb,var(--warn) 16%,transparent);color:var(--ink)}
+.rofline button{border:0;background:none;color:var(--a4);font:inherit;font-weight:700;padding:0;border-bottom:1px dotted var(--a4);cursor:pointer}
+
+.shipimg{width:150px;max-width:38vw;height:auto;align-self:center;filter:drop-shadow(0 4px 10px rgba(0,0,0,.6))}
+.shipimg.sm{width:120px;float:right;margin:0 0 6px 10px}
+.homelink{flex:none;font-family:var(--f-display);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:.85rem;text-decoration:none;color:#000;background:var(--a4);padding:6px 12px;border-radius:var(--round)}
+:root[data-alien] .homelink{clip-path:var(--bclip,none);border-radius:var(--brad,0)}
+@media (max-width:560px){.shipcard{grid-template-columns:minmax(0,1fr) auto}.shipcard .shipimg{grid-column:1/-1;justify-self:center}}
+@media (max-width:480px){.homelink .hl{display:none}}
+
+/* Red Alert switch (site copy): a link styled as a switch, on */
+.ra{display:inline-flex;align-items:center;gap:10px;border-radius:999px;background:var(--hi);color:#000;padding:5px 14px 5px 6px;font-family:var(--f-display);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.85rem;text-decoration:none}
+.ra .knob{width:44px;height:24px;border-radius:999px;background:#000;position:relative;flex:none}
+.ra .knob::after{content:"";position:absolute;top:3px;left:23px;width:18px;height:18px;border-radius:50%;background:var(--hi)}
+:root[data-alien] .ra{border-radius:var(--brad,0);clip-path:var(--bclip,none)}
+@media (prefers-reduced-motion:no-preference){.ra{animation:rapulse 1.6s ease-in-out infinite}}
+@keyframes rapulse{50%{opacity:.7}}
+
+</style>
+
+<div class="lc">
+  <div class="lc-corner" aria-hidden="true"></div>
+  <header class="lc-top">
+    <div class="lc-bar" aria-hidden="true"><span></span><span></span><span></span></div>
+    <div class="lc-head">
+      <div class="title">Incursion PvP<small>Ship · bridge · below deck · tech</small></div>
+      <span class="alert" id="alertTag">Red alert</span>
+      <span class="spacer"></span>
+      <label class="skinpick" for="skinSel">Look
+        <select id="skinSel">
+          <option value="red">Federation · red alert</option>
+          <option value="klingon">Klingon</option>
+          <option value="romulan">Romulan</option>
+          <option value="cardassian">Cardassian</option>
+          <option value="bajoran">Bajoran</option>
+          <option value="borg">Borg</option>
+          <option value="dominion">Dominion</option>
+        </select>
+      </label>
+    </div>
+  </header>
+  <div class="lc-rail" aria-hidden="true"><div class="seg a"></div><div class="seg"></div><div class="seg b"></div><div class="fill"></div></div>
+  <main class="lc-main">
+    <div class="roster">
+      <label class="btn" for="file">Load my Spocks.Club export<input id="file" type="file" accept=".json,application/json"></label>
+      <button id="clear" class="btn ghost" type="button" hidden>Forget my roster</button>
+      <span id="rstat">No roster loaded. Load it to hide officers, ships and tech you don't have.</span>
+    </div>
+
+    <nav class="tabs" role="tablist" aria-label="Steps">
+      <button type="button" role="tab" data-v="ship" aria-selected="true"><span class="num">1</span>Ship</button>
+      <button type="button" role="tab" data-v="bridge" aria-selected="false"><span class="num">2</span>Bridge crew</button>
+      <button type="button" role="tab" data-v="below" aria-selected="false"><span class="num">3</span>Below deck</button>
+      <button type="button" role="tab" data-v="tech" aria-selected="false"><span class="num">4</span>Tech</button>
+      <button type="button" role="tab" data-v="sum" aria-selected="false"><span class="num">5</span>Summary</button>
+      <button type="button" role="tab" data-v="fix" aria-selected="false">Fix a problem</button>
+      <button type="button" role="tab" data-v="build" aria-selected="false">Build a crew</button>
+      <button type="button" role="tab" data-v="officers" aria-selected="false">Officers</button>
+      <button type="button" role="tab" data-v="credits" aria-selected="false">Credits</button>
+    </nav>
+    <div class="sumbar" id="sumbar"></div>
+
+    <!-- 1 SHIP -->
+    <section class="view" id="v-ship">
+      <h1 class="q">Which ship are you flying?</h1>
+      <div class="chips" id="fightF" role="group" aria-label="Fight">
+        <span class="flab">Doing</span>
+        <button type="button" data-v="s">Ship vs ship</button>
+        <button type="button" data-v="a">Hit a station</button>
+        <button type="button" data-v="d">Defend station</button>
+        <button type="button" data-v="r">Raiding</button>
+      </div>
+      <div class="chips" id="clsF" role="group" aria-label="Ship type">
+        <span class="flab">Type</span>
+        <button type="button" data-v="">All</button>
+        <button type="button" data-v="I">Interceptor</button>
+        <button type="button" data-v="B">Battleship</button>
+        <button type="button" data-v="E">Explorer</button>
+        <button type="button" data-v="S">Survey</button>
+      </div>
+      <div class="row">
+        <label class="field" for="shipSel"><span>Ship</span><select id="shipSel" class="pick"></select></label>
+        <label class="field lvl" for="lvl"><span>Ship level</span><input id="lvl" class="pick" type="number" min="1" max="90" inputmode="numeric"></label>
+      </div>
+      <article class="ship" id="shipCard"></article>
+      <label class="row" style="gap:6px;color:var(--ink-2)"><input id="showAb" type="checkbox"> Show the ship's abilities</label>
+      <button class="btn next" type="button" data-go="bridge">Next: bridge crew ▸</button>
+    </section>
+
+    <!-- 2 BRIDGE -->
+    <section class="view" id="v-bridge" hidden>
+      <h1 class="q">Pick a bridge crew</h1>
+      <p class="lead" id="bridgeLead"></p>
+      <div class="legend"><span class="pill p-Y">works</span> ability is on in this fight <span class="pill p-C">if…</span> only under a condition <span class="pill p-N">off</span> doesn't apply here</div>
+      <div id="bridgeMain"></div>
+      <div class="needhelp"><span>Don't have these crews?</span><button class="btn" type="button" data-go="build">Find a crew from my officers ▸</button></div>
+      <button class="btn next" type="button" data-go="below">Next: below deck ▸</button>
+    </section>
+
+    <!-- 3 BELOW DECK -->
+    <section class="view" id="v-below" hidden>
+      <h1 class="q">Fill below deck</h1>
+      <p class="lead" id="belowLead"></p>
+      <div class="bdrow" id="bdSuggest"></div>
+      <div class="row"><span class="cl" id="bdHint"></span><button class="btn ghost" type="button" id="bdReset" hidden>Back to the suggested picks</button></div>
+      <label class="row" style="gap:6px;color:var(--ink-2)" id="bdAllWrap"><input id="bdAll" type="checkbox"> Include officers I don't have</label>
+      <div id="bdLists" style="display:flex;flex-direction:column;gap:12px"></div>
+      <button class="btn next" type="button" data-go="tech">Next: tech ▸</button>
+    </section>
+
+    <!-- 4 TECH -->
+    <section class="view" id="v-tech" hidden>
+      <h1 class="q">Pick your tech</h1>
+      <p class="lead" id="techLead"></p>
+      <div class="builder">
+        <label class="field" for="tF"><span>Forbidden tech slot</span><select id="tF" class="pick"></select></label>
+        <label class="field" for="tC"><span>Chaos tech slot</span><select id="tC" class="pick"></select></label>
+      </div>
+      <p class="note2" id="techSlotNote"></p>
+      <label class="row" style="gap:6px;color:var(--ink-2)" id="techMineWrap"><input id="techMine" type="checkbox"> Include tech I don't have</label>
+      <div id="techLists" style="display:flex;flex-direction:column;gap:14px"></div>
+      <button class="btn next" type="button" data-go="sum">Next: summary ▸</button>
+    </section>
+
+    <!-- 5 SUMMARY -->
+    <section class="view" id="v-sum" hidden>
+      <h1 class="q">Your loadout</h1>
+      <div id="sumOut" style="display:flex;flex-direction:column;gap:16px"></div>
+      <div class="row"><button class="btn" type="button" id="copySum">Copy for Discord</button><span class="cl" id="copyMsg" role="status"></span></div>
+      <textarea id="copyBox" class="pick" rows="7" readonly hidden aria-label="Loadout as text"></textarea>
+    </section>
+
+    <!-- FIX -->
+    <section class="view" id="v-fix" hidden>
+      <h1 class="q">What's going wrong?</h1>
+      <p class="lead">Pick the problem. You'll get the officers, tech and crews that counter it, with the ones you have first.</p>
+      <div class="chips" id="fixF" role="group" aria-label="Problem"></div>
+      <div id="fixOut" style="display:flex;flex-direction:column;gap:14px"></div>
+    </section>
+
+    <!-- BUILD -->
+    <section class="view" id="v-build" hidden>
+      <h1 class="q">Find a crew from your officers</h1>
+      <p class="lead" id="buildLead"></p>
+      <h2 class="sub">Crews you can field now</h2>
+      <div class="crewlist" id="fieldNow"></div>
+      <h2 class="sub">Or build your own</h2>
+      <div class="builder">
+        <label class="field" for="bCap"><span>Captain (centre)</span><select id="bCap" class="pick"></select></label>
+        <label class="field" for="bL"><span>Bridge (left)</span><select id="bL" class="pick"></select></label>
+        <label class="field" for="bR"><span>Bridge (right)</span><select id="bR" class="pick"></select></label>
+      </div>
+      <div class="crewlist" id="customOut"></div>
+    </section>
+
+    <!-- OFFICERS -->
+    <section class="view" id="v-officers" hidden>
+      <h1 class="q">Officers by ability</h1>
+      <p class="lead">Every officer with an ability that works in this fight, grouped by what it does. Pick a seat to see only captain, bridge or below-deck abilities.</p>
+      <div class="tools">
+        <div class="chips" id="seatF" role="group" aria-label="Seat"><span class="flab">Seat</span><button type="button" data-v="">Any</button><button type="button" data-v="C">Captain</button><button type="button" data-v="B">Bridge</button><button type="button" data-v="D">Below deck</button></div>
+        <input id="oq" type="search" placeholder="Search name, group or ability" aria-label="Search officers">
+        <label id="oMineWrap"><input id="oMine" type="checkbox"> Only officers I have</label>
+      </div>
+      <div id="offGroups" style="display:flex;flex-direction:column;gap:10px"></div>
+    </section>
+
+    <!-- CREDITS -->
+    <section class="view" id="v-credits" hidden>
+      <h1 class="q">Credits &amp; sources</h1>
+      <div class="credits">
+        <div class="credit">
+          <h3>stfc.phd</h3>
+          <span>Ship data and abilities, Forbidden and Chaos tech, the hostile list, and the officer and ship pages every name on this page links to. Huge thanks to the stfc.phd team.</span>
+          <ul>
+            <li><a href="https://stfc.phd" target="_blank" rel="noopener">stfc.phd home</a></li>
+            <li><a href="https://stfc.phd/library/officer" target="_blank" rel="noopener">Officer library</a> · <a href="https://stfc.phd/library/ship" target="_blank" rel="noopener">Ship library</a> · <a href="https://stfc.phd/library/tech" target="_blank" rel="noopener">Tech library</a></li>
+            <li><a href="https://stfc.phd/crew-finder" target="_blank" rel="noopener">Crew finder</a> · <a href="https://stfc.phd/ship-comparison" target="_blank" rel="noopener">Ship comparison</a></li>
+            <li><a href="https://stfc.phd/cheat-sheet/raid" target="_blank" rel="noopener">Raiding cheat sheet</a> (how many hits to empty a station)</li>
+            <li><a href="https://discord.gg/BRhru6Vcnj" target="_blank" rel="noopener">stfc.phd Discord</a></li>
+          </ul>
+        </div>
+        <div class="credit">
+          <h3>Crews</h3>
+          <span>The <b>featured bridge crews</b> (the three Strike Teams, the Carol Crew and the Hierarch Crew) are the ones most used in PvP, as picked by ImDoppler's alliance.</span>
+          <span><b>Crew Suggestions M87</b> by StewieDøø &amp; the OT, used with permission: the Retaliation, base cracking, BOLD Defense, raiding and other PvP crews.</span>
+          <span><b>Blue's Crews &amp; Clues</b> by BlueMandalorian &amp; team: the Vengeance crews.</span>
+        </div>
+        <div class="credit">
+          <h3>Officer data</h3>
+          <span>Abilities, fight tags and portraits from the <b>M92 Cheat Sheet</b>.</span>
+          <span><b>Toryn</b> and <b>Rose Harper</b> are newer than the M92 sheet; their abilities and portraits come from stfc.phd, as do the ship pictures.</span>
+          <span>Roster import reads the export from <a href="https://spocks.club" target="_blank" rel="noopener">Spocks.Club</a>. It stays in this browser; only officer, ship and tech ids with their ranks and tiers are kept, on this device.</span>
+        </div>
+        <div class="credit">
+          <h3>Looks</h3>
+          <span>The species looks are drawn in code after the alien-panel recreations at <a href="http://www.lcars.org.uk/lcars_Alien_panels.htm" target="_blank" rel="noopener">lcars.org.uk</a>. LCARS was created by Michael Okuda and team.</span>
+          <span>Star Trek Fleet Command belongs to Scopely; Star Trek belongs to Paramount. This page isn't affiliated with either.</span>
+        </div>
+      </div>
+      <footer><span>"Works" means the ability isn't blocked in that fight, not that it's strong. Strength depends on rank, research and ship.</span></footer>
+    </section>
+  </main>
+</div>
+
+<script>
+const D = /*DATA*/;
+const RAR = {E:'Epic',R:'Rare',U:'Uncommon',C:'Common',X:'New officer'};
+const FIGHT = {s:'ship vs ship', a:'hitting a station', d:'defending your station', r:'raiding'};
+const TYPEN = {I:'Interceptor', B:'Battleship', E:'Explorer', S:'Survey'};
+const STN = {M:'Morale',H:'Hull Breach',B:'Burning',A:'Assimilated','*':'any status'};
+const SKINS = {red:'Red alert', klingon:'Battle stations', romulan:'Battle alert', cardassian:'Combat alert', bajoran:'Battle stations', borg:'Resistance is futile', dominion:'Victory is life'};
+const CATN = {shots:'More shots', crit:'Critical hits', damage:'Damage', pierce:'Piercing & accuracy', iso:'Isolytic', apex:'Apex Barrier & Shred', status:'Burning, Hull Breach & Morale', mitig:'Mitigation', hull:'Hull & shield', delay:'Delay enemy fire', stats:'Officer stats & boosts', raid:'Cargo & raiding', other:'Other'};
+const HIGH_ROF = 7, LOW_ROF = 4;
+const ROF_CAPS = ['The Hierarch','Carol Freeman'];
+const RAIDSHIP = s => s.ab.some(a => /remaining resources/i.test(a.d));
+const byName = {}; D.o.forEach(o => byName[o.n] = o);
+const shipById = {}; D.ships.forEach(s => shipById[s.id] = s);
+const shipImg = (s, cls = 'shipimg') => `<img class="${cls}" src="img/ships/${s.id}.webp" alt="" loading="lazy" onerror="this.remove()">`;
+
+/* Featured bridge crews. l = left bridge seat, r = right seat options (first is the default). */
+const FEAT = {
+  ist:{n:'Interceptor Strike Team', cap:'Gul Dukat', l:'Garak', r:['Andy Billups','Damar'], fly:['I'], why:'The standard Interceptor crew. Gul Dukat gives the enemy Hull Breach, and Garak and Billups or Damar hit harder against it.'},
+  bst:{n:'Battleship Strike Team', cap:"Strike Team La'an", l:'Strike Team Una', r:['Shaxs','Strike Team Ortegas'], fly:['B'], why:"The standard Battleship crew. Strike Team La'an sets the enemy Burning, and the team's abilities build on it."},
+  carol:{n:'The Carol Crew', cap:'Carol Freeman', l:'Honorguard Worf', r:['Specialist Seven','Lorca'], fly:['E'], rof:true, why:'What most Explorers run. Carol Freeman adds shots against players, so it also works well on high rate-of-fire ships like the Borg Cube, Rotarran and Vengeance.'},
+  est:{n:'Explorer Strike Team', cap:'Weyoun', l:'Pon', r:['Jack Ransom','Ikat’ika'], fly:['E'], why:'The weakest of the Strike Teams but still solid. Weyoun gives your ship Morale and the others build on it.'},
+  hier:{n:'The Hierarch Crew', cap:'The Hierarch', l:'Nog', r:['Ezri Dax'], fly:['I','B','E','S'], rof:true, why:'Still being worked out, but solid overall with full synergy. The Hierarch boosts your shots, so it shines on high rate-of-fire ships like the Borg Cube, Rotarran and Vengeance.'},
+  ret7:{n:'Retaliation: Specialist Seven', cap:'Specialist Seven', l:'Icheb', r:['Infiltrator Tuvok'], fly:['I'], sec:true, why:"Best on Interceptors (M87). Seven's bridge ability gives the enemy Hull Breach; Icheb and Tuvok need it. Much better tiered up."},
+  retS:{n:'Retaliation: Soran', cap:'Soran', l:'Romi', r:['Miss Q'], fly:['B'], sec:true, why:"Best on Battleships (M87). Soran's captain maneuver sets the enemy Burning; Romi and Miss Q need it. Much better tiered up."},
+  retQ:{n:'Retaliation: Starfleet Q', cap:'Starfleet Q', l:'Mariachi Q', r:['French Marshal Q'], fly:['E'], sec:true, why:"Best on Explorers (M87). Starfleet Q gives your ship Morale; Mariachi Q and French Marshal Q need it. Much better tiered up."}
+};
+const ORDER = {I:['ist','hier','carol','ret7'], B:['bst','hier','carol','retS'], E:['carol','est','hier','retQ'], S:['hier']};
+Object.entries(FEAT).forEach(([id, c]) => { c.id = id; c.src = c.sec ? 'Secondary option' : 'Most used'; c.note = '' });
+const M87 = D.c.map((c, i) => ({id:'m' + i, n:c.n, cap:c.cap, l:c.a, r:[c.b].filter(Boolean), fly:c.fly, vs:c.vs, k:c.k, src:c.src, note:c.note, why:c.how || '', bd:c.bd, sw:c.sw}));
+const featSets = Object.values(FEAT).flatMap(f => f.r.map(x => [f.cap, f.l, x].sort().join('|')));
+const M87U = M87.filter(c => !featSets.includes([c.cap, c.l, c.r[0]].sort().join('|')));
+
+let st = {view:'ship', fight:'s', cls:'', ship:null, lvl:null, crew:null, alt:{}, seat:'', bdp:null, tech:{F:null, C:null}};
+let own = null, ownShips = null, ownTech = null, custom = null, openDet = {};
+function loadState(){
+  try{ own = JSON.parse(localStorage.getItem('pvp-own') || 'null') }catch(e){}
+  if(!own){ // roster loaded on the Hostile Crew Guide instead (same site)
+    try{ const g = JSON.parse(localStorage.getItem('own') || 'null'); if(g && g.ranks){ const s2g = {}; Object.entries(D.g2s).forEach(([gid, sl]) => s2g[sl] = gid); own = {}; Object.entries(g.ranks).forEach(([sl, r]) => { if(s2g[sl]) own[s2g[sl]] = r }) } }catch(e){}
+  }
+  try{ ownShips = JSON.parse(localStorage.getItem('pvp-ships') || 'null') }catch(e){}
+  try{ ownTech = JSON.parse(localStorage.getItem('pvp-tech') || 'null') }catch(e){}
+  try{ Object.assign(st, JSON.parse(localStorage.getItem('pvp-steps') || '{}'), {view:'ship'}); st.tech = Object.assign({F:null, C:null}, st.tech || {}) }catch(e){}
+}
+function saveRoster(){
+  try{
+    own ? localStorage.setItem('pvp-own', JSON.stringify(own)) : localStorage.removeItem('pvp-own');
+    ownShips ? localStorage.setItem('pvp-ships', JSON.stringify(ownShips)) : localStorage.removeItem('pvp-ships');
+    ownTech ? localStorage.setItem('pvp-tech', JSON.stringify(ownTech)) : localStorage.removeItem('pvp-tech');
+    if(own){ const ranks = {}; Object.entries(own).forEach(([gid, r]) => { if(D.g2s[gid]) ranks[D.g2s[gid]] = r }); localStorage.setItem('own', JSON.stringify({ranks, at:new Date().toISOString().slice(0, 10)})) }
+    else localStorage.removeItem('own');
+  }catch(e){}
+}
+function saveSteps(){ try{ localStorage.setItem('pvp-steps', JSON.stringify({fight:st.fight, cls:st.cls, ship:st.ship, lvl:st.lvl, crew:st.crew, alt:st.alt, bdp:st.bdp, tech:st.tech})) }catch(e){} }
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const rankOf = n => { if(!own) return undefined; const g = D.all[n]; return g && own[g] !== undefined ? own[g] : null };
+const has = n => !own || rankOf(n) > 0;
+const offLink = n => D.all[n] ? `<a href="https://stfc.phd/library/officer/${D.all[n]}" target="_blank" rel="noopener">${esc(n)}</a>` : esc(n);
+function face(n){
+  const src = D.por[D.all[n]], o = byName[n], r = o ? ` r${o.r}` : '';
+  if(src) return `<img class="face${r}" src="${src}" alt="" loading="lazy">`;
+  return `<span class="face${r}" aria-hidden="true">${esc((n || '?').split(/[\s-]+/).slice(-2).map(w => w[0]).join(''))}</span>`;
+}
+function rankBadge(n){
+  const r = rankOf(n);
+  if(r === undefined) return '';
+  if(r === null || r === 0) return `<span class="rank miss">${r === 0 ? 'shards' : 'missing'}</span>`;
+  return `<span class="rank have">R${r}</span>`;
+}
+const PILL = {Y:['p-Y','works'], C:['p-C','if…'], N:['p-N','off']};
+const pill = s => { const [c,l] = PILL[s]; return `<span class="pill ${c}">${l}</span>` };
+const abOf = (n, t) => { const o = byName[n]; return o && o.ab.find(a => a.t === t) };
+const stateOf = (n, t) => { const a = abOf(n, t); return a ? a.m[st.fight] : 'N' };
+
+/* ---------- ship ---------- */
+const curShip = () => shipById[st.ship];
+function shipLevel(){ const s = curShip(); if(!s) return 1; return Math.max(1, Math.min(s.ml, Number(st.lvl) || (ownShips && ownShips[s.id] ? ownShips[s.id].l : s.ml))) }
+const seatsAt = (s, l) => s.cs.filter(u => u <= l).length;
+function shipTier(){
+  const s = curShip(); if(!s) return 1;
+  const o = ownShips && ownShips[s.id];
+  if(o && (!st.lvl || Number(st.lvl) === o.l)) return o.t || 1;
+  return Math.max(1, Math.min(s.tn, Math.ceil(shipLevel() / 5)));
+}
+function shipList(){
+  let list = D.ships.slice();
+  if(st.fight === 'r') list = list.filter(RAIDSHIP);
+  else if(st.cls) list = list.filter(s => s.t === st.cls);
+  const mine = s => ownShips && ownShips[s.id] ? 1 : 0;
+  return list.sort((a,b) => mine(b) - mine(a) || b.g - a.g || a.n.localeCompare(b.n));
+}
+function renderShip(){
+  document.querySelectorAll('#fightF button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === st.fight));
+  document.querySelectorAll('#clsF button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === st.cls));
+  document.getElementById('clsF').hidden = st.fight === 'r';
+  const list = shipList();
+  if(!list.some(s => s.id === st.ship)) { st.ship = list[0] ? list[0].id : null; st.lvl = null }
+  const sel = document.getElementById('shipSel');
+  sel.innerHTML = list.map(s => {
+    const o = ownShips && ownShips[s.id];
+    return `<option value="${s.id}">${esc(s.n)} · G${s.g} ${TYPEN[s.t]}${o ? ` · yours, L${o.l}` : ''}</option>`;
+  }).join('');
+  sel.value = st.ship;
+  const s = curShip(); if(!s){ document.getElementById('shipCard').innerHTML = ''; return }
+  const lv = shipLevel(), n = seatsAt(s, lv), nxt = s.cs.find(u => u > lv);
+  const lvl = document.getElementById('lvl'); lvl.max = s.ml; lvl.value = lv;
+  const o = ownShips ? ownShips[s.id] : undefined;
+  const ab = document.getElementById('showAb').checked ? s.ab.map(a => `<div class="sha"><b>${esc(a.n)}:</b> ${esc(a.d)}${a.p ? '<span class="tag">PvP</span>' : ''}</div>`).join('') : '';
+  document.getElementById('shipCard').innerHTML = `<div class="shipcard">${shipImg(s)}<div>
+      <div class="shn"><a href="https://stfc.phd/library/ship/${s.id}" target="_blank" rel="noopener">${esc(s.n)}</a>${o === undefined ? '' : o ? `<span class="rank have">T${o.t} · L${o.l}</span>` : '<span class="rank miss">not owned</span>'}</div>
+      <div class="shm">${TYPEN[s.t]} · ${esc(s.f)} · G${s.g} · ${esc(s.r)}${s.ck ? ' · can cloak' : ''}</div>
+      <div class="shs">Rate of fire: about ${s.rof} shots a round (${rofWord(s.rof)})${s.rof >= HIGH_ROF ? ' <span class="tag">High rate of fire</span> Great with the Hierarch and Carol crews.' : s.rof < LOW_ROF ? '. Crews that add shots, like the Hierarch and Carol crews, gain less here.' : '.'}</div>
+      <div class="shs">Tier ${shipTier()}${shipTier() < s.tf ? ` · tech slots open at tier ${s.tf}` : ''} · ${nxt ? `next below-deck seat at level ${nxt}` : 'all below-deck seats unlocked'}.</div>
+    </div><div class="seats-big">${n}<small>below-deck seats<br>at level ${lv}</small></div></div>${ab}`;
+}
+
+/* ---------- crews ---------- */
+function crewFor(id){
+  if(id === 'custom') return custom;
+  return FEAT[id] || M87.find(c => c.id === id);
+}
+function rightPick(c){
+  if(st.alt[c.id] !== undefined && c.r[st.alt[c.id]]) return c.r[st.alt[c.id]];
+  if(own){ const best = c.r.filter(n => rankOf(n) > 0).sort((a,b) => rankOf(b) - rankOf(a))[0]; if(best) return best }
+  return c.r[0];
+}
+const seatsOf = c => [c.cap, c.l, rightPick(c)].filter(Boolean);
+const isBoost = c => !!c && (c.rof || ROF_CAPS.includes(c.cap));
+const canField = c => !own || seatsOf(c).every(n => rankOf(n) > 0);
+function rofNote(c){
+  const s = curShip();
+  if(!s || st.fight !== 's' || !isBoost(c)) return null;
+  if(s.rof >= HIGH_ROF) return {kind:'good'};
+  if(s.rof < LOW_ROF){
+    const ids = ORDER[s.t] || ORDER.I;
+    const better = ids.map(id => FEAT[id]).find(f => f && !isBoost(f) && f.id !== c.id && canField(f));
+    if(better) return {kind:'bad', better};
+  }
+  return null;
+}
+const rofWord = r => r >= HIGH_ROF ? 'fast' : r < LOW_ROF ? 'slow' : 'average';
+function bridgeCrews(){
+  const s = curShip();
+  if(st.fight === 's'){
+    const t = s ? s.t : 'I';
+    let ids = (ORDER[t] || ORDER.I).slice();
+    if(ids.includes('carol') && !FEAT.carol.fly.includes(t) && !(s && s.rof >= HIGH_ROF)) ids = ids.filter(x => x !== 'carol');
+    return ids.map(id => FEAT[id]);
+  }
+  return M87.filter(c => c.k === st.fight).sort((a,b) => haveCount(b) - haveCount(a));
+}
+const haveCount = c => own ? seatsOf(c).filter(n => rankOf(n) > 0).length : 0;
+function seat3(c, n, t, cap){
+  const s = stateOf(n, t), miss = own && !(rankOf(n) > 0);
+  const alts = !cap && c.r && c.r.length > 1 && n === rightPick(c) ? `<div class="alts">or ${c.r.filter(x => x !== n).map(x => `<button type="button" data-alt="${c.id}" data-i="${c.r.indexOf(x)}">${esc(x)}</button>`).join(', ')}</div>` : '';
+  return `<div class="s3${cap ? ' cap' : ''}${miss ? ' miss' : ''}"><div class="s3n">${offLink(n)}</div>${face(n)}<div class="s3r">${cap ? 'Captain' : 'Bridge'}</div><div class="s3b">${rankBadge(n)}${pill(s)}</div>${alts}</div>`;
+}
+function abLine(n, t){
+  const a = abOf(n, t); if(!a) return '';
+  const lab = {C:'Captain maneuver', B:'Bridge ability', D:'Below deck'}[t];
+  return `<div><span class="who2">${esc(n)} · ${lab}</span><br>${esc(a.s)}${a.cl.length ? ` <span class="cl">(${esc(a.cl.join(', '))})</span>` : ''}</div>`;
+}
+function crewCard(c, opts = {}){
+  const [cap, l, r] = [c.cap, c.l, rightPick(c)];
+  const det = openDet[c.id];
+  const fly = c.fly && c.fly.length && c.fly.length < 4 ? 'Fly: ' + c.fly.map(x => TYPEN[x]).join(' or ') : 'Any ship';
+  const vs = c.vs && c.vs.length && c.vs.length < 4 ? ' · vs ' + c.vs.map(x => TYPEN[x] + 's').join(', ') : '';
+  const chosen = st.crew === c.id;
+  const rn = rofNote(c);
+  return `<article class="crew" data-crew="${c.id}">
+    <div class="ctop"><div>${c.src === 'Most used' ? '<span class="ribbon">Most used</span>' : c.src === 'Secondary option' ? '<span class="ribbon sec">Secondary option</span>' : ''}${rn && rn.kind === 'good' ? ' <span class="ribbon rof">Fits your fast-firing ship</span>' : ''}${rn && rn.kind === 'bad' ? ' <span class="ribbon warnr">Slow ship</span>' : ''}<h3>${esc(c.n)}</h3><div class="meta">${esc(fly + vs)}${c.src && !FEAT[c.id] && c.id !== 'custom' ? ' · ' + esc(c.src) : ''}</div></div>
+      <button class="dtog" type="button" data-det="${c.id}" aria-expanded="${!!det}">${det ? 'Less ▴' : 'Details ▾'}</button></div>
+    ${rn && rn.kind === 'good' ? `<div class="rofline good">This crew adds shots, and ${esc(curShip().n)} fires about ${curShip().rof} shots a round, so every boost counts more.</div>` : ''}${rn && rn.kind === 'bad' ? `<div class="rofline bad">This crew leans on extra shots, but ${esc(curShip().n)} only fires about ${curShip().rof} a round. <button type="button" data-use="${rn.better.id}">${esc(rn.better.n)}</button> is a better fit${own ? ' and you have the officers for it' : ''}.</div>` : ''}
+    <div class="bridge3">${l ? seat3(c, l, 'B') : '<div></div>'}${seat3(c, cap, 'C', true)}${r ? seat3(c, r, 'B') : '<div></div>'}</div>
+    <div class="cdet"${det ? '' : ' hidden'}>${c.why ? `<div>${esc(c.why)}</div>` : ''}${abLine(cap, 'C')}${abLine(cap, 'B')}${l ? abLine(l, 'B') : ''}${r ? abLine(r, 'B') : ''}${c.note ? `<div class="cl">Source notes: ${esc(c.note)}</div>` : ''}</div>
+    <div class="cfoot"><button class="usebtn" type="button" data-use="${c.id}" aria-pressed="${chosen}">${chosen ? 'Using this crew ✓' : 'Use this crew ▸'}</button>${opts.extra || ''}</div>
+  </article>`;
+}
+function renderBridge(){
+  const s = curShip();
+  const list = bridgeCrews();
+  if(!st.crew || !crewFor(st.crew) || (FEAT[st.crew] && !list.includes(FEAT[st.crew])) || (!FEAT[st.crew] && st.crew !== 'custom' && st.fight !== 's' && crewFor(st.crew).k !== st.fight)) st.crew = list[0] ? list[0].id : null;
+  document.getElementById('bridgeLead').textContent = st.fight === 's'
+    ? `Crews for ${s ? s.n + ', an ' + TYPEN[s.t] : 'your ship'}${s && s.rof >= HIGH_ROF ? ' with a high rate of fire' : ''}. The captain sits in the middle, like in the game.`
+    : `Crews for ${FIGHT[st.fight]}, from Crew Suggestions M87.${own ? ' Crews you can fully crew come first.' : ''}`;
+  const main = list.filter(c => !c.sec), sec = list.filter(c => c.sec);
+  document.getElementById('bridgeMain').innerHTML =
+    `<div class="crewlist">${main.map(c => crewCard(c)).join('')}</div>` +
+    (sec.length ? `<h2 class="sub" style="margin-top:18px">Secondary option</h2><div class="crewlist" style="margin-top:12px">${sec.map(c => crewCard(c)).join('')}</div>` : '');
+}
+
+/* ---------- below deck ---------- */
+function crewGives(c){
+  const self = new Set(), enemy = new Set();
+  const add = (n, t) => { const a = abOf(n, t); if(!a || a.m[st.fight] === 'N') return; [...a.gs].forEach(x => self.add(x)); [...a.ge].forEach(x => enemy.add(x)) };
+  if(!c) return {self, enemy};
+  add(c.cap, 'C'); seatsOf(c).forEach(n => add(n, 'B'));
+  return {self, enemy};
+}
+const SHIPCOND = {SelfExplorer:'E', SelfInterceptor:'I', SelfBattleship:'B', SelfSurveyor:'S'};
+const OPPCOND = ['EnemyExplorer','EnemyInterceptor','EnemyBattleship','EnemySurvey','SelfDefending','SelfCloaked','HullHealthBelow','HullHealthBelowStartOfCombat'];
+function bdFit(a, gives, t){
+  let pairs = [], some = false;
+  for(const code of a.c){
+    if(SHIPCOND[code]){ if(SHIPCOND[code] !== t) return null; pairs.push('on your ' + TYPEN[t]) }
+    if(code === 'SelfStateNone' && gives.self.size) return null;
+    if(code === 'SelfHullFKR'){ const sh = curShip(); if(sh && /vengeance/i.test(sh.n)) pairs.push('on the U.S.S. Vengeance'); else some = true }
+    if(OPPCOND.includes(code) && !(code === 'SelfDefending' && st.fight === 'd')) some = true;
+  }
+  for(const x of a.ns){ if(x === '*' ? !gives.self.size : !gives.self.has(x)) return null; pairs.push('your crew gives ' + STN[x]) }
+  for(const x of a.ne){ if(x === '*' ? !gives.enemy.size : !gives.enemy.has(x)) return null; pairs.push('your crew gives the enemy ' + (x === '*' ? 'a status' : STN[x])) }
+  if(some) return {b:'some'};
+  if(pairs.length) return {b:'pairs', why:pairs};
+  return {b:'always'};
+}
+function belowData(){
+  const s = curShip(), c = crewFor(st.crew), t = s ? s.t : 'I', n = s ? seatsAt(s, shipLevel()) : 0;
+  const gives = crewGives(c), bridge = new Set(c ? seatsOf(c) : []);
+  const all = !own || document.getElementById('bdAll').checked;
+  const rows = {pairs:[], always:[], some:[]};
+  D.o.forEach(o => {
+    if(bridge.has(o.n)) return;
+    const a = o.ab.find(x => x.t === 'D'); if(!a || a.m[st.fight] === 'N') return;
+    const f = bdFit(a, gives, t); if(!f) return;
+    rows[f.b].push({o, a, why:f.why, mine: !own || rankOf(o.n) > 0});
+  });
+  const sc = r => (r.a.sp[st.fight] ? 10 : 0) + (r.a.m[st.fight] === 'Y' ? 2 : 0) + (rankOf(r.o.n) || 0);
+  Object.values(rows).forEach(l => l.sort((x, y) => sc(y) - sc(x) || x.o.n.localeCompare(y.o.n)));
+  const auto = [...rows.pairs, ...rows.always].filter(r => r.mine).slice(0, n).map(r => r.o.n);
+  const picks = (st.bdp ? st.bdp.filter(x => !bridge.has(x)) : auto).slice(0, n);
+  return {s, c, n, gives, rows, all, picks, auto};
+}
+function renderBelow(){
+  const {s, c, n, gives, rows, all, picks} = belowData();
+  document.getElementById('bdAllWrap').hidden = !own;
+  document.getElementById('bdReset').hidden = !st.bdp;
+  document.getElementById('bdHint').textContent = n ? (st.bdp ? 'Your picks.' : 'Suggested picks. Use Add or Remove in the lists to change them.') : '';
+  document.getElementById('belowLead').innerHTML = s
+    ? `${esc(s.n)} at level ${shipLevel()} has <b>${n}</b> below-deck seat${n === 1 ? '' : 's'}. Bridge crew: <b>${c ? esc(c.n) : 'none picked'}</b>.${gives.self.size || gives.enemy.size ? ` It gives ${[...[...gives.self].map(x => 'your ship ' + STN[x]), ...[...gives.enemy].map(x => 'the enemy ' + STN[x])].join(', ')}.` : ''}`
+    : 'Pick a ship first.';
+  document.getElementById('bdSuggest').innerHTML = n ? picks.map(x => `<div class="bdpick">${face(x)}<span>${esc(x)}</span>${rankBadge(x)}<button class="dtog" type="button" data-bd="${esc(x)}">Remove</button></div>`).join('') + Array.from({length: Math.max(0, n - picks.length)}, () => `<div class="bdpick empty"><span class="face"></span><span>Open seat</span></div>`).join('') : '';
+  const full = picks.length >= n;
+  const btn = name => picks.includes(name) ? `<button class="dtog" type="button" data-bd="${esc(name)}">Remove</button>` : full ? '' : `<button class="dtog" type="button" data-bd="${esc(name)}">Add</button>`;
+  const block = (title, l, open) => { l = l.filter(r => all || r.mine); return l.length ? `<details class="grpbox"${open ? ' open' : ''}><summary><h3>${title}</h3><span class="cnt">${l.length}</span></summary>${l.map(r => `<div class="mini2">${face(r.o.n)}<div><div class="nm">${offLink(r.o.n)}${rankBadge(r.o.n)} ${btn(r.o.n)}</div><div class="tx">${esc(r.a.s)}${r.a.sp[st.fight] ? `<span class="tag">${st.fight === 'r' ? 'raid' : 'PvP'}</span>` : ''}</div>${r.why ? `<div class="why">Pairs because ${esc(r.why.join(' and '))}</div>` : ''}</div></div>`).join('')}</details>` : '' };
+  document.getElementById('bdLists').innerHTML =
+    block('Pairs with this crew', rows.pairs, true) + block('Works in this fight', rows.always, !rows.pairs.length) + block('Only in some fights (vs one ship type, when defending, cloaked…)', rows.some, false)
+    || `<p class="empty">${own && !all ? 'None of your officers fit. Tick "Include officers I don\'t have" to see what to work toward.' : 'No below-deck officers fit this crew.'}</p>`;
+}
+
+/* ---------- tech ---------- */
+function techPool(ty){
+  const kinds = {s:['pvp','all'], a:['pvp','all','stna','stn'], d:['pvp','all','stn'], r:['raid','all','pvp']}[st.fight];
+  const sh = curShip();
+  return D.tech.filter(t => t.ty === ty && (!t.only || !sh || t.only === sh.t)).map(t => ({t, ef:t.ef.filter(e => kinds.includes(e.k))})).filter(x => x.ef.length && !(st.fight === 's' && x.t.ef.some(e => e.k.startsWith('stn')) && !x.ef.some(e => e.k === 'pvp')))
+    .sort((a,b) => tscore(b) - tscore(a) || a.t.n.localeCompare(b.t.n));
+}
+function tscore(x){
+  return x.ef.reduce((s, e) => s + (e.k === 'pvp' ? 1 : e.k.startsWith('stn') && st.fight !== 's' ? 2 : e.k === 'raid' && st.fight === 'r' ? 2 : 0), 0);
+}
+const techById = id => D.tech.find(t => t.id === id);
+const techOwned = id => ownTech ? ownTech[id] : undefined;
+function renderTech(){
+  const s = curShip(), tier = shipTier();
+  document.getElementById('techMineWrap').hidden = !ownTech;
+  const all = !ownTech || document.getElementById('techMine').checked;
+  document.getElementById('techLead').textContent = (st.fight === 'r'
+    ? 'Tech that helps raiding (cargo) or works in player fights.'
+    : 'Only effects that work against players are listed; tech that only helps against hostiles or armadas is left out.') + ' Values run from the first tier to max.';
+  const slotSel = (id, ty, key) => {
+    const l = techPool(ty).filter(x => all || techOwned(x.t.id) || x.t.id === st.tech[key]);
+    const el = document.getElementById(id);
+    el.innerHTML = '<option value="">Empty</option>' + l.map(({t}) => { const o = techOwned(t.id); return `<option value="${t.id}">${esc(t.n)}${o ? ` · yours T${o.t}` : ''}</option>` }).join('');
+    el.value = st.tech[key] || '';
+    el.disabled = !!s && tier < (key === 'F' ? s.tf : s.tc);
+  };
+  slotSel('tF', 'Forbidden', 'F'); slotSel('tC', 'Chaos', 'C');
+  document.getElementById('techSlotNote').textContent = s
+    ? (tier < s.tf ? `${s.n} is tier ${tier}. Its tech slots open at tier ${s.tf}.` : `${s.n} (tier ${tier}) has one Forbidden and one Chaos tech slot.`)
+    : 'Pick a ship first.';
+  const out = ['Forbidden','Chaos'].map(ty => {
+    const key = ty[0];
+    const l = techPool(ty).filter(x => all || techOwned(x.t.id));
+    return l.length ? `<h2 class="sub">${ty} tech (${l.length})</h2><div class="techgrid">${l.map(({t, ef}) => {
+      const o = techOwned(t.id), on = st.tech[key] === t.id;
+      return `<article class="ship"><div class="shn">${esc(t.n)}${o === undefined ? '' : o ? `<span class="rank have">T${o.t} · L${o.l}</span>` : '<span class="rank miss">not owned</span>'}</div>
+        ${ef.map(e => `<div class="eff"><span class="t">Tier ${e.tier}</span><span>${esc(e.e)}${e.k === 'pvp' ? '<span class="tag">PvP</span>' : e.k === 'raid' ? '<span class="tag">raid</span>' : e.k.startsWith('stn') ? '<span class="tag">station</span>' : ''}</span></div>`).join('')}
+        <div class="cfoot"><button class="usebtn" type="button" data-tech="${key}:${t.id}" aria-pressed="${on}">${on ? `In ${ty} slot ✓` : `Use in ${ty} slot ▸`}</button></div></article>`;
+    }).join('')}</div>` : '';
+  }).join('');
+  document.getElementById('techLists').innerHTML = out || '<p class="empty">You have none of these yet. Tick "Include tech I don\'t have" to see them all.</p>';
+}
+
+/* ---------- summary ---------- */
+function loadout(){
+  const s = curShip(), c = crewFor(st.crew), bd = belowData();
+  return {s, c, seats: c ? [c.l, c.cap, rightPick(c)].filter(Boolean) : [], bd, F: techById(st.tech.F), C: techById(st.tech.C)};
+}
+function renderSumView(){
+  const L = loadout(), s = L.s, c = L.c, warn = [];
+  if(!s) warn.push('No ship picked.');
+  if(!c) warn.push('No bridge crew picked.');
+  if(c){
+    [[c.cap,'C'],[c.cap,'B'],[c.l,'B'],[rightPick(c),'B']].forEach(([n,t]) => { if(n && stateOf(n,t) === 'N') warn.push(`${n}'s ${t === 'C' ? 'captain maneuver' : 'bridge ability'} does nothing in this fight.`) });
+    if(own) seatsOf(c).forEach(n => { if(!(rankOf(n) > 0)) warn.push(`You don't have ${n} yet.`) });
+  }
+  const rn = c && rofNote(c); if(rn && rn.kind === 'bad') warn.push(`${c.n} leans on extra shots, but ${s.n} fires slowly. ${rn.better.n} is a better fit.`);
+  if(s && L.bd.picks.length < L.bd.n) warn.push(`${L.bd.n - L.bd.picks.length} below-deck seat${L.bd.n - L.bd.picks.length === 1 ? '' : 's'} still open.`);
+  if(s && shipTier() >= s.tf && !L.F) warn.push('Forbidden tech slot is empty.');
+  if(s && shipTier() >= s.tc && !L.C) warn.push('Chaos tech slot is empty.');
+  const techBox = (t, ty) => t ? `<div><b>${esc(t.n)}</b>${techOwned(t.id) ? `<span class="rank have">T${techOwned(t.id).t}</span>` : ownTech ? '<span class="rank miss">not owned</span>' : ''}${t.ef.filter(e => e.k === 'pvp' || (st.fight === 'r' && e.k === 'raid') || (st.fight !== 's' && e.k.startsWith('stn'))).map(e => `<div class="eff"><span class="t">Tier ${e.tier}</span><span>${esc(e.e)}</span></div>`).join('')}</div>` : `<div class="cl">${ty} slot empty</div>`;
+  document.getElementById('sumOut').innerHTML = `
+    <article class="ship"><div class="sub" style="margin:0">Ship</div>${s ? `${shipImg(s, 'shipimg sm')}<div class="shn">${esc(s.n)}</div><div class="shm">${TYPEN[s.t]} · level ${shipLevel()} · tier ${shipTier()} · ${L.bd.n} below-deck seats · ${FIGHT[st.fight]}</div>` : '<div class="cl">None</div>'}</article>
+    <article class="crew"><div class="sub" style="margin:0">Bridge crew${c ? ': ' + esc(c.n) : ''}</div>${c ? `<div class="bridge3">${c.l ? seat3(c, c.l, 'B') : '<div></div>'}${seat3(c, c.cap, 'C', true)}${rightPick(c) ? seat3(c, rightPick(c), 'B') : '<div></div>'}</div>` : '<div class="cl">None</div>'}</article>
+    <article class="ship"><div class="sub" style="margin:0">Below deck</div><div class="bdrow" style="margin-top:8px">${L.bd.picks.map(x => `<div class="bdpick">${face(x)}<span>${esc(x)}</span>${rankBadge(x)}</div>`).join('') || '<span class="cl">None</span>'}</div></article>
+    <article class="ship"><div class="sub" style="margin:0">Tech</div><div class="builder" style="margin-top:8px">${techBox(L.F, 'Forbidden')}${techBox(L.C, 'Chaos')}</div></article>
+    ${warn.length ? `<div class="note2"><b>Check before you fly:</b><br>${warn.map(esc).join('<br>')}</div>` : '<div class="note2">Everything is filled in.</div>'}`;
+}
+function loadoutText(){
+  const L = loadout(), s = L.s, c = L.c;
+  const nm = n => n + (own && rankOf(n) > 0 ? ` (R${rankOf(n)})` : '');
+  return [
+    `PvP loadout · ${FIGHT[st.fight]}`,
+    s ? `Ship: ${s.n} (${TYPEN[s.t]}), level ${shipLevel()}, tier ${shipTier()}` : 'Ship: none',
+    c ? `Bridge (${c.n}): ${c.l ? nm(c.l) + ' | ' : ''}${nm(c.cap)} (captain)${rightPick(c) ? ' | ' + nm(rightPick(c)) : ''}` : 'Bridge: none',
+    `Below deck: ${L.bd.picks.map(nm).join(', ') || 'none'}`,
+    `Forbidden tech: ${L.F ? L.F.n : 'empty'} · Chaos tech: ${L.C ? L.C.n : 'empty'}`
+  ].join('\n');
+}
+
+
+/* ---------- fix a problem ---------- */
+const PROBLEMS = [
+  {id:'crit', q:'They crit me to death', f:'s',
+   why:'Crit-heavy crews (Honorguard Worf, Khan, the Strike Teams) win by landing critical hits. Cutting their crit chance or crit damage takes away their main weapon.',
+   off:/(-\s?x|decreas|reduc|lower).{0,45}crit|crit.{0,30}(reduc|decreas)|critical mitigation/i, tech:/critical (hit )?(chance|damage).{0,40}(reduc|decreas)|(reduc|decreas).{0,40}critical/i, crews:/anti crit|critical counter/i},
+  {id:'apex', q:'My hits barely do damage', f:'s',
+   why:"Their Apex Barrier is soaking up your damage. Apex Shred cancels it out, so your hits land at full strength again.",
+   off:/apex shred/i, tech:/apex shred/i},
+  {id:'hard', q:'They hit too hard', f:'s',
+   why:"You're taking more damage than you can absorb. Apex Barrier, mitigation and damage reduction against players all cut what gets through.",
+   off:/apex barrier|decreases? enemy damage|mitigation|armor, deflection & dodge/i, tech:/apex barrier|decreases opponent's damage|mitigation stats|armor, shield deflection/i, pvpOnly:true},
+  {id:'shields', q:'My shields drop too fast', f:'s',
+   why:'Once your shields are gone, every hit goes to your hull. More shield health and shield repair keep them up longer.',
+   off:/shield (repair|health|regen)|max shield|restored to the shield/i, not:/opponent|enemy/i, tech:/shield health/i},
+  {id:'theirshields', q:'Their shields never go down', f:'s',
+   why:"Their shield mitigation is stopping your damage. Lowering it, or adding shield piercing, gets your hits through to the hull.",
+   off:/(-\s?x|decreas|reduc|lower).{0,40}shield (mitigation|health)|shield piercing|shield.{0,25}ignored|ignore.{0,20}shield/i, tech:/shield mitigation/i},
+  {id:'st', q:'I keep losing to Strike Teams', f:'s',
+   why:'Strike Team and Retaliation crews do most of their damage as isolytic cascade once their status (Hull Breach, Burning or Morale) is up. Isolytic Defense cuts that damage, and M87 has crews built to counter them.',
+   off:/isolytic defense/i, tech:/isolytic defen/i, crews:/anti.?str(i)?ke|anti st\b/i},
+  {id:'stronger', q:"They're a higher level or a stronger ship", f:'s',
+   why:"A big level or ship-strength gap is the hardest thing for crew to make up. Fight ships closer to your level where you can. A few officers get bonuses against stronger ships.",
+   off:/stronger/i},
+  {id:'station', q:'Station defenses wreck me', f:'a',
+   why:"Station defense platforms hit hard in the first rounds. Base-cracking officers delay their fire or cut their damage, and some tech only works when attacking stations.",
+   offSpec:'a', tech:/station/i, crews:/^base cracking/i}
+];
+let fixSel = 'crit';
+function renderFix(){
+  document.getElementById('fixF').innerHTML = PROBLEMS.map(p => `<button type="button" data-fix="${p.id}" aria-pressed="${p.id === fixSel}">${esc(p.q)}</button>`).join('');
+  const p = PROBLEMS.find(x => x.id === fixSel), f = p.f;
+  const SEATN = {C:'Captain', B:'Bridge', D:'Below deck'};
+  const rows = [];
+  D.o.forEach(o => o.ab.forEach(a => {
+    if(a.m[f] === 'N') return;
+    const hit = p.offSpec ? a.sp[p.offSpec] : p.off.test(a.s);
+    if(!hit || (p.not && p.not.test(a.s)) || (p.pvpOnly && !a.sp[f])) return;
+    rows.push({o, a});
+  }));
+  const sc = r => (rankOf(r.o.n) > 0 ? 100 : 0) + (r.a.sp[f] ? 10 : 0) + (rankOf(r.o.n) || 0);
+  rows.sort((x, y) => sc(y) - sc(x) || x.o.n.localeCompare(y.o.n));
+  const shown = rows.slice(0, 14);
+  const techs = p.tech ? D.tech.filter(t => t.ef.some(e => (e.k === 'pvp' || e.k === 'all' || (f === 'a' && e.k.startsWith('stn'))) && p.tech.test(e.e))) : [];
+  techs.sort((a, b) => (techOwned(b.id) ? 1 : 0) - (techOwned(a.id) ? 1 : 0) || a.n.localeCompare(b.n));
+  const crews = p.crews ? M87.filter(c => p.crews.test(c.n)) : [];
+  document.getElementById('fixOut').innerHTML = `
+    <div class="note2">${esc(p.why)}${f === 'a' ? ' These answers are for attacking a station.' : ''}</div>
+    <details class="grpbox" open><summary><h3>Officers that help</h3><span class="cnt">${rows.length}</span></summary>
+      ${shown.map(({o, a}) => `<div class="mini2">${face(o.n)}<div><div class="nm">${offLink(o.n)}${rankBadge(o.n)} <span class="pill ${a.m[f] === 'Y' ? 'p-Y' : 'p-C'}">${SEATN[a.t]}</span></div><div class="tx">${esc(a.s)}${a.cl.length ? ` <span class="cl">(${esc(a.cl.join(', '))})</span>` : ''}</div></div></div>`).join('') || '<p class="cl">None in the data.</p>'}
+      ${rows.length > shown.length ? `<p class="cl">${rows.length - shown.length} more in the Officers tab.</p>` : ''}
+    </details>
+    ${techs.length ? `<details class="grpbox"><summary><h3>Tech that helps</h3><span class="cnt">${techs.length}</span></summary>${techs.map(t => { const o = techOwned(t.id); const e = t.ef.filter(e => p.tech.test(e.e)); return `<div class="mini2" style="grid-template-columns:minmax(0,1fr)"><div><div class="nm">${esc(t.n)} <span class="cl">${t.ty}</span>${o === undefined ? '' : o ? `<span class="rank have">T${o.t}</span>` : '<span class="rank miss">not owned</span>'}</div>${e.map(x => `<div class="tx">${esc(x.e)}</div>`).join('')}</div></div>` }).join('')}</details>` : ''}
+    ${crews.length ? `<details class="grpbox"><summary><h3>Crews built for this (M87)</h3><span class="cnt">${crews.length}</span></summary><div class="crewlist" style="margin-top:10px">${crews.map(c => crewCard(c)).join('')}</div></details>` : ''}
+    <p class="cl">Matched from ability and tech text. A rough guide, not a combat simulation.</p>`;
+}
+
+/* ---------- build ---------- */
+function renderBuild(){
+  const s = curShip(), t = s ? s.t : '';
+  document.getElementById('buildLead').textContent = own
+    ? `Crews made only from officers you have, for ${s ? s.n : 'your ship'} (${FIGHT[st.fight]}). Strongest ranks first.`
+    : 'Load your Spocks.Club export at the top to see crews made only from officers you have. Until then, everything is listed.';
+  const pool = [...Object.values(FEAT), ...M87U].filter(c => (st.fight === 's' ? (FEAT[c.id] || c.k === 's') : c.k === st.fight) && (!t || !c.fly || !c.fly.length || c.fly.includes(t)));
+  const ok = own ? pool.filter(c => seatsOf(c).every(n => rankOf(n) > 0)) : pool;
+  const rk = c => seatsOf(c).reduce((a, n) => a + (rankOf(n) || 0), 0) + (FEAT[c.id] ? 20 : 0);
+  ok.sort((a,b) => rk(b) - rk(a));
+  document.getElementById('fieldNow').innerHTML = ok.slice(0, 6).map(c => crewCard(c)).join('') || '<p class="empty">No listed crew can be fully crewed from your officers. Build one below.</p>';
+  // builder selects
+  const usable = (t2) => D.o.filter(o => { const a = o.ab.find(x => x.t === t2); return a && a.m[st.fight] !== 'N' && has(o.n) });
+  const score = (o, t2) => { const a = o.ab.find(x => x.t === t2); return (a.sp[st.fight] ? 10 : 0) + (a.m[st.fight] === 'Y' ? 2 : 0) + (rankOf(o.n) || 0) };
+  const capL = usable('C').sort((a,b) => score(b,'C') - score(a,'C') || a.n.localeCompare(b.n));
+  const bC = document.getElementById('bCap'), bL = document.getElementById('bL'), bR = document.getElementById('bR');
+  const keep = [bC.value, bL.value, bR.value];
+  bC.innerHTML = '<option value="">Choose a captain</option>' + capL.map(o => `<option>${esc(o.n)}</option>`).join('');
+  bC.value = capL.some(o => o.n === keep[0]) ? keep[0] : '';
+  const capO = byName[bC.value];
+  const brL = usable('B').filter(o => o.n !== bC.value).sort((a,b) => ((capO && b.y === capO.y) - (capO && a.y === capO.y)) || score(b,'B') - score(a,'B') || a.n.localeCompare(b.n));
+  const opt = o => `<option value="${esc(o.n)}">${esc(o.n)}${capO && o.y === capO.y ? ' · synergy' : ''}</option>`;
+  bL.innerHTML = '<option value="">Choose an officer</option>' + brL.map(opt).join('');
+  bR.innerHTML = '<option value="">Choose an officer</option>' + brL.map(opt).join('');
+  bL.value = brL.some(o => o.n === keep[1]) ? keep[1] : '';
+  bR.value = brL.some(o => o.n === keep[2]) && keep[2] !== bL.value ? keep[2] : '';
+  if(bC.value){
+    const syn = [bL.value, bR.value].filter(n => n && byName[n].y === capO.y).length;
+    custom = {id:'custom', n:'Your crew', cap:bC.value, l:bL.value, r:[bR.value].filter(Boolean), fly:[], src:'', why:`${syn === 2 ? 'Full synergy: both bridge officers share the captain\'s group.' : syn === 1 ? 'Half synergy: one bridge officer shares the captain\'s group.' : 'No synergy with the captain\'s group.'} Check the pills: anything marked "off" does nothing in this fight.`, note:''};
+    document.getElementById('customOut').innerHTML = crewCard(custom);
+  } else { custom = null; document.getElementById('customOut').innerHTML = '' }
+}
+
+/* ---------- officers ---------- */
+function renderOfficers(){
+  document.querySelectorAll('#seatF button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === st.seat));
+  document.getElementById('oMineWrap').hidden = !own;
+  const mine = own && document.getElementById('oMine').checked;
+  const q = document.getElementById('oq').value.trim().toLowerCase();
+  const groups = {};
+  D.o.forEach(o => {
+    if(mine && !(rankOf(o.n) > 0)) return;
+    o.ab.forEach(a => {
+      if(a.m[st.fight] === 'N' || (st.seat && a.t !== st.seat)) return;
+      if(st.fight !== 'r' && a.k === 'raid') return;
+      if(q && !(o.n + ' ' + o.y + ' ' + a.s).toLowerCase().includes(q)) return;
+      (groups[a.k] = groups[a.k] || []).push({o, a});
+    });
+  });
+  const order = Object.keys(CATN).filter(k => groups[k]);
+  const SEATN = {C:'Captain', B:'Bridge', D:'Below deck'};
+  document.getElementById('offGroups').innerHTML = order.map(k => {
+    const l = groups[k].sort((x, y) => (y.a.sp[st.fight] - x.a.sp[st.fight]) || ((rankOf(y.o.n) || 0) - (rankOf(x.o.n) || 0)) || x.o.n.localeCompare(y.o.n));
+    return `<details class="grpbox"><summary><h3>${CATN[k]}</h3><span class="cnt">${l.length}</span></summary>${l.map(({o, a}) => `<div class="mini2">${face(o.n)}<div><div class="nm">${offLink(o.n)}${rankBadge(o.n)} <span class="pill ${a.m[st.fight] === 'Y' ? 'p-Y' : 'p-C'}">${SEATN[a.t]}</span></div><div class="tx">${esc(a.s)}${a.sp[st.fight] ? `<span class="tag">${st.fight === 'r' ? 'raid' : 'PvP'}</span>` : ''}${a.cl.length ? ` <span class="cl">(${esc(a.cl.join(', '))})</span>` : ''}</div><div class="grp">${esc(o.y)} · ${RAR[o.r]}</div></div></div>`).join('')}</details>`;
+  }).join('') || '<p class="empty">No officers match.</p>';
+}
+
+/* ---------- shell ---------- */
+function renderSum(){
+  const s = curShip(), c = crewFor(st.crew);
+  document.getElementById('sumbar').innerHTML = `<span>Doing <b>${FIGHT[st.fight]}</b></span>${s ? `<span>Ship <b>${esc(s.n)}</b> L${shipLevel()} · <b>${seatsAt(s, shipLevel())}</b> below deck</span>` : ''}${c ? `<span>Bridge <b>${esc(c.n)}</b></span>` : ''}${st.tech.F || st.tech.C ? `<span>Tech <b>${[techById(st.tech.F), techById(st.tech.C)].filter(Boolean).map(t => esc(t.n)).join(' + ')}</b></span>` : ''}`;
+}
+function rosterStat(){
+  const el = document.getElementById('rstat');
+  document.getElementById('clear').hidden = !own;
+  if(!own){ el.textContent = "No roster loaded. Load it to hide officers, ships and tech you don't have."; return }
+  el.textContent = `${Object.values(own).filter(r => r > 0).length} officers, ${ownShips ? Object.keys(ownShips).length : 0} ships and ${ownTech ? Object.keys(ownTech).length : 0} tech loaded`;
+}
+const RENDER = {ship:() => {}, bridge:() => {}, below:renderBelow, tech:renderTech, sum:renderSumView, fix:renderFix, build:renderBuild, officers:renderOfficers, credits:() => {}};
+function render(){
+  renderShip();
+  renderBridge();
+  RENDER[st.view]();
+  document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.v === st.view));
+  document.querySelectorAll('.view').forEach(v => v.hidden = v.id !== 'v-' + st.view);
+  renderSum(); rosterStat(); saveSteps();
+}
+function go(v){ st.view = v; render(); document.querySelector('.tabs').scrollIntoView({block:'nearest'}) }
+
+document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => go(b.dataset.v)));
+document.addEventListener('click', e => {
+  const g = e.target.closest('[data-go]'); if(g){ go(g.dataset.go); return }
+  const fx = e.target.closest('[data-fix]'); if(fx){ fixSel = fx.dataset.fix; render(); return }
+  const d = e.target.closest('[data-det]'); if(d){ openDet[d.dataset.det] = !openDet[d.dataset.det]; render(); return }
+  const a = e.target.closest('[data-alt]'); if(a){ st.alt[a.dataset.alt] = Number(a.dataset.i); render(); return }
+  const u = e.target.closest('[data-use]'); if(u){ st.crew = u.dataset.use; st.bdp = null; render(); return }
+  const bd = e.target.closest('[data-bd]'); if(bd){ const cur = belowData(); const l = cur.picks.slice(); const i = l.indexOf(bd.dataset.bd); if(i >= 0) l.splice(i, 1); else if(l.length < cur.n) l.push(bd.dataset.bd); st.bdp = l; render(); return }
+  const tk = e.target.closest('[data-tech]'); if(tk){ const [k, id] = tk.dataset.tech.split(':'); st.tech[k] = st.tech[k] === id ? null : id; render(); return }
+});
+document.querySelectorAll('#fightF button').forEach(b => b.addEventListener('click', () => { st.fight = b.dataset.v; st.crew = null; st.bdp = null; render() }));
+document.querySelectorAll('#clsF button').forEach(b => b.addEventListener('click', () => { st.cls = b.dataset.v; st.crew = null; st.bdp = null; render() }));
+document.querySelectorAll('#seatF button').forEach(b => b.addEventListener('click', () => { st.seat = b.dataset.v; render() }));
+document.getElementById('shipSel').addEventListener('change', e => { st.ship = Number(e.target.value); st.lvl = null; st.crew = null; st.bdp = null; render() });
+document.getElementById('bdReset').addEventListener('click', () => { st.bdp = null; render() });
+document.getElementById('tF').addEventListener('change', e => { st.tech.F = e.target.value || null; render() });
+document.getElementById('tC').addEventListener('change', e => { st.tech.C = e.target.value || null; render() });
+document.getElementById('copySum').addEventListener('click', () => {
+  const txt = loadoutText(), box = document.getElementById('copyBox'), msg = document.getElementById('copyMsg');
+  box.value = txt; box.hidden = false;
+  const fallback = () => { box.focus(); box.select(); msg.textContent = 'Select-all is on: copy the text below.' };
+  try{ navigator.clipboard.writeText(txt).then(() => { msg.textContent = 'Copied. Paste it into Discord.' }, fallback) }catch(err){ fallback() }
+});
+document.getElementById('lvl').addEventListener('change', e => { st.lvl = Number(e.target.value) || null; render() });
+['showAb','bdAll','techMine','oMine'].forEach(id => document.getElementById(id).addEventListener('input', render));
+document.getElementById('oq').addEventListener('input', renderOfficers);
+['bCap','bL','bR'].forEach(id => document.getElementById(id).addEventListener('change', render));
+document.getElementById('clear').addEventListener('click', () => { own = ownShips = ownTech = null; saveRoster(); render() });
+document.getElementById('file').addEventListener('change', e => {
+  const f = e.target.files[0]; if(!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    try{
+      const j = JSON.parse(rd.result);
+      if(!Array.isArray(j.officers)) throw new Error('no officers');
+      own = {}; j.officers.forEach(o => { if(o && o.id !== undefined) own[String(o.id)] = Number(o.rank) || 0 });
+      ownShips = {};
+      (Array.isArray(j.ships) ? j.ships : []).forEach(s => {
+        if(!s || s.hull_id === undefined) return;
+        const k = String(s.hull_id), cur = ownShips[k], t = Number(s.tier) || 0, l = Number(s.level) || 0;
+        if(!cur || l > cur.l || (l === cur.l && t > cur.t)) ownShips[k] = {t, l};
+      });
+      ownTech = {};
+      (Array.isArray(j.tech) ? j.tech : []).forEach(t => { if(t && t.id !== undefined && Number(t.tier) >= 1) ownTech[String(t.id)] = {t:Number(t.tier) || 0, l:Number(t.level) || 0} });
+      st.lvl = null; saveRoster(); render();
+    }catch(err){ document.getElementById('rstat').textContent = "That file isn't a Spocks.Club export (no officer list found)." }
+    e.target.value = '';
+  };
+  rd.readAsText(f);
+});
+function setSkin(s){
+  if(!SKINS[s]) s = 'red';
+  const root = document.documentElement;
+  root.dataset.skin = s;
+  if(s === 'red') delete root.dataset.alien; else root.dataset.alien = '';
+  document.getElementById('skinSel').value = s;
+  document.getElementById('alertTag').textContent = SKINS[s];
+  try{ localStorage.setItem('pvp-skin', s) }catch(e){}
+}
+document.getElementById('skinSel').addEventListener('change', e => setSkin(e.target.value));
+let sk = 'red'; try{ sk = localStorage.getItem('pvp-skin') || 'red' }catch(e){}
+setSkin(sk);
+loadState(); render();
+</script>
