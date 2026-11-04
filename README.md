@@ -13,7 +13,7 @@ Both tools can read a Spocks.Club export so they can show which officers (and, o
 
 ## Credits
 
-- **stfc.phd**: ship data and abilities, the hostile list, and the officer and ship pages every name links to. https://stfc.phd
+- **stfc.phd**: ship data and abilities, Forbidden and Chaos tech, the hostile list, the ship pictures (`img/ships`), the abilities and portraits of officers newer than the M92 sheet (Toryn, Rose Harper, Trelane), and the officer and ship pages every name links to. https://stfc.phd
 - **Crew Suggestions M87** by StewieDøø & the OT, used with permission.
 - **Blue's Crews & Clues** by BlueMandalorian & team.
 - **M92 Cheat Sheet**: officer abilities, fight tags and portraits.
