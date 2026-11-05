@@ -15,6 +15,9 @@ switch = ('<a class="homelink" href="./" aria-label="Home">◂<span class="hl"> 
           '<span id="alertTag">Red alert</span></a>')
 site = page.replace('<span class="alert" id="alertTag">Red alert</span>', switch, 1)
 assert site != page, 'header marker not found'
+marker = '<div class="chips" id="fixF"'
+assert marker in site, 'fix tab marker not found'
+site = site.replace(marker, '<p class="lead">Lost a specific fight? <a href="lose.html">Upload its combat log</a> and get the answer for that fight.</p>\n      ' + marker, 1)
 head = ('<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'
         '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
         '<style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}'

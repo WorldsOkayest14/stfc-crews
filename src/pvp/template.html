@@ -1122,5 +1122,7 @@ function setSkin(s){
 document.getElementById('skinSel').addEventListener('change', e => setSkin(e.target.value));
 let sk = 'red'; try{ sk = localStorage.getItem('pvp-skin') || 'red' }catch(e){}
 setSkin(sk);
-loadState(); render();
+loadState();
+{ const h = location.hash.match(/^#fix-([a-z]+)$/); if(h && PROBLEMS.some(p => p.id === h[1])){ st.view = 'fix'; fixSel = h[1] } }
+render();
 </script>

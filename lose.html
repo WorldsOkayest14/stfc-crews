@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Why Did I Lose</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Antonio:wght@500;700&family=Barlow+Semi+Condensed:wght@400;500;600&display=swap">
+<style>
+/* Layout: the crew guide's LCARS frame. A drop zone for combat logs, then one verdict card per fight and a comparison panel when several fights share an enemy. Single deliberate dark look. */
+:root{color-scheme:dark;
+  --bg:#000; --surface:#0f0c0a; --surface-2:#18120d; --ink:#f6ead9; --ink-2:#c3ae97; --line:#3b2e24;
+  --orange:#ff9c1a; --peach:#ffc98f; --lilac:#d49ad4; --red:#e8231f; --salmon:#ff7a5c;
+  --win:#9be59b; --loss:#ff6b5c; --warn:#ffb547;
+  --f-display:"Antonio","Arial Narrow","Roboto Condensed",sans-serif; --f-body:"Barlow Semi Condensed","Arial Narrow",system-ui,sans-serif}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{background:var(--bg);margin:0}
+body{color:var(--ink);font:16px/1.45 var(--f-body);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:max(12px,env(safe-area-inset-top,0px)) 32px}
+a{color:var(--peach)}
+:focus-visible{outline:3px solid var(--lilac);outline-offset:3px}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;text-transform:uppercase;letter-spacing:.04em;line-height:1.05;margin:0;text-wrap:balance}
+.frame{max-width:980px;margin:0 auto;display:grid;grid-template-columns:28px minmax(0,1fr);gap:0 16px}
+.elbow{background:var(--orange);border-top-left-radius:36px;min-height:64px}
+.bar{display:flex;gap:6px;height:16px}
+.bar span{background:var(--orange);flex:1}.bar span:nth-child(2){flex:0 0 22%;background:var(--peach)}.bar span:nth-child(3){flex:0 0 34px;background:var(--red);border-radius:0 999px 999px 0}
+.head{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;padding-top:10px}
+.head h1{color:var(--orange);font-size:clamp(1.7rem,6vw,2.6rem);flex:1 1 auto}
+.homelink{font-family:var(--f-display);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:.85rem;text-decoration:none;color:#000;background:var(--peach);padding:6px 12px;border-radius:999px}
+.rail{display:flex;flex-direction:column;gap:6px;padding-top:6px}
+.rail div{background:var(--peach);min-height:70px}.rail div:nth-child(2){background:var(--lilac);min-height:120px}.rail div:last-child{flex:1;background:var(--orange);border-bottom-left-radius:20px}
+main{display:flex;flex-direction:column;gap:20px;padding-top:18px;min-width:0}
+.lead{margin:0;color:var(--ink-2);max-width:68ch}
+.drop{border:3px dashed var(--line);border-radius:24px;padding:22px 18px;display:flex;flex-direction:column;gap:10px;align-items:flex-start;background:var(--surface)}
+.drop.over{border-color:var(--orange)}
+.btn{position:relative;border:0;background:var(--orange);color:#000;font-family:var(--f-display);font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:10px 18px;border-radius:999px;font-size:.95rem;cursor:pointer}
+.btn.ghost{background:var(--line);color:var(--ink)}
+.btn input{position:absolute;width:1px;height:1px;opacity:0}
+.small{font-size:.86rem;color:var(--ink-2)}
+.err{color:var(--loss)}
+.fight{border-left:14px solid var(--c,var(--line));border-radius:26px 0 0 26px;background:var(--surface);padding:14px 16px 16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.fight.loss{--c:var(--loss)} .fight.win{--c:var(--win)}
+.ftop{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline}
+.badge{font-family:var(--f-display);font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:.8rem;padding:2px 10px;border-radius:999px;background:var(--c);color:#000}
+.when{font-size:.84rem;color:var(--ink-2)}
+.verdict{font-family:var(--f-display);font-weight:700;text-transform:uppercase;letter-spacing:.03em;font-size:clamp(1.4rem,5vw,2rem);line-height:1.05;color:var(--c)}
+.vs{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:10px;align-items:start}
+.side{min-width:0}
+.side b{font-family:var(--f-display);letter-spacing:.04em;text-transform:uppercase;font-weight:700;display:block;color:var(--peach)}
+.side span{display:block;font-size:.88rem;color:var(--ink-2);overflow-wrap:anywhere}
+.side.r{text-align:right}
+.vsmark{font-family:var(--f-display);color:var(--ink-2);padding-top:2px}
+.race{display:grid;gap:6px}
+.racerow{display:grid;grid-template-columns:7.5em minmax(0,1fr) 3.4em;gap:8px;align-items:center;font-size:.85rem}
+.track{height:14px;background:var(--surface-2);border-radius:999px;overflow:hidden}
+.fill{height:100%;border-radius:999px}
+.racerow .pct{font-variant-numeric:tabular-nums;text-align:right}
+.reasons{display:flex;flex-direction:column;gap:8px;margin:0;padding:0;list-style:none}
+.reasons li{background:var(--surface-2);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:3px}
+.reasons li b{font-family:var(--f-display);letter-spacing:.05em;text-transform:uppercase;color:var(--warn)}
+.reasons li.ok b{color:var(--win)}
+.reasons .fix{font-size:.86rem}
+details summary{cursor:pointer;font-family:var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--lilac);font-size:.9rem}
+.tablewrap{overflow-x:auto;margin-top:8px}
+table{border-collapse:collapse;font-size:.85rem;font-variant-numeric:tabular-nums;min-width:420px}
+th,td{padding:4px 10px;text-align:right;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left}
+th{font-family:var(--f-display);letter-spacing:.06em;text-transform:uppercase;font-weight:500;color:var(--ink-2)}
+.compare{border:3px solid var(--lilac);border-radius:24px;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.compare h2{color:var(--lilac);font-size:1.2rem}
+.chip{display:inline-block;padding:1px 9px;border-radius:999px;font-weight:600;margin:2px 4px 2px 0;font-size:.9rem}
+.chip.w{background:color-mix(in srgb,var(--win) 20%,transparent);color:var(--win)}
+.chip.l{background:color-mix(in srgb,var(--loss) 20%,transparent);color:var(--loss)}
+.foot{font-size:.82rem;color:var(--ink-2);border-left:6px solid var(--line);padding-left:12px;max-width:75ch}
+@media (min-width:800px){.frame{grid-template-columns:110px minmax(0,1fr)}.elbow{border-top-left-radius:60px;min-height:90px}.bar{height:22px}}
+@media (max-width:520px){.vs{grid-template-columns:minmax(0,1fr)}.side.r{text-align:left}.vsmark{display:none}.racerow{grid-template-columns:6.4em minmax(0,1fr) 3.2em}}
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="elbow" aria-hidden="true"></div>
+  <header>
+    <div class="bar" aria-hidden="true"><span></span><span></span><span></span></div>
+    <div class="head"><h1>Why did I lose?!</h1><a class="homelink" href="./">◂ Home</a></div>
+  </header>
+  <div class="rail" aria-hidden="true"><div></div><div></div><div></div></div>
+  <main>
+    <p class="lead">Drop in the combat log you exported from the game (one or several). You'll get a plain answer for each fight, and if you add wins and losses against the same enemy, what changed between them.</p>
+    <div class="drop" id="drop">
+      <label class="btn" for="files">Choose combat logs<input id="files" type="file" accept=".csv,.tsv,.txt,text/csv,text/plain" multiple></label>
+      <span class="small">Or drag the files here. They're read in this browser only and aren't uploaded or saved.</span>
+      <span class="small err" id="err" role="status"></span>
+    </div>
+    <div id="compare"></div>
+    <div id="out" style="display:flex;flex-direction:column;gap:18px"></div>
+    <p class="foot">The answer is worked out from the damage numbers in the log: how much of your damage their Apex Barrier, mitigation and Isolytic Defense absorbed, how much of theirs got through to you, and how close the fight was. It's a guide, not a combat simulator. Fan-made; not affiliated with Scopely or Paramount.</p>
+  </main>
+</div>
+
+<script>
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const num = x => { const v = parseFloat(String(x ?? '').replace(/,/g, '')); return isFinite(v) ? v : 0 };
+const pct = (a, b) => b > 0 ? a / b : 0;
+const P = x => Math.round(x * 100) + '%';
+function big(n){
+  const a = Math.abs(n);
+  for(const [d, s] of [[1e12,'T'],[1e9,'B'],[1e6,'M'],[1e3,'K']]) if(a >= d) return (n / d).toFixed(a / d >= 100 ? 0 : a / d >= 10 ? 1 : 2) + s;
+  return String(Math.round(n));
+}
+const titleCase = s => String(s || '').toLowerCase().replace(/(^|[\s.\-'(])([a-z])/g, (m, p, c) => p + c.toUpperCase());
+
+/* ---------- parsing ---------- */
+function splitRow(line, d){
+  const out = []; let cur = '', q = false;
+  for(let i = 0; i < line.length; i++){
+    const c = line[i];
+    if(q){ if(c === '"'){ if(line[i + 1] === '"'){ cur += '"'; i++ } else q = false } else cur += c }
+    else if(c === '"') q = true;
+    else if(c === d){ out.push(cur); cur = '' }
+    else cur += c;
+  }
+  out.push(cur); return out;
+}
+function parse(text){
+  text = text.replace(/^﻿/, '').replace(/\r\n?/g, '\n');
+  const first = text.split('\n', 1)[0];
+  const d = (first.match(/\t/g) || []).length >= (first.match(/,/g) || []).length ? '\t' : ',';
+  const blocks = []; let cur = [];
+  for(const line of text.split('\n')){
+    const row = splitRow(line, d);
+    if(!row.some(c => c.trim())){ if(cur.length){ blocks.push(cur); cur = [] } }
+    else cur.push(row.map(c => c.trim()));
+  }
+  if(cur.length) blocks.push(cur);
+  const tab = b => b.slice(1).map(r => Object.fromEntries(b[0].map((h, i) => [h, r[i] ?? ''])));
+  const head = blocks.find(b => b[0][0] === 'Player Name');
+  const fleet = blocks.find(b => b[0][0] === 'Fleet Type');
+  const events = blocks.find(b => b[0][0] === 'Round');
+  if(!head || !events) throw new Error("This doesn't look like a combat log export (no player or round table).");
+  return {players: tab(head), fleet: fleet ? tab(fleet) : [], events: tab(events)};
+}
+
+/* ---------- analysis ---------- */
+function analyze(name, text){
+  const L = parse(text);
+  const me = L.players[0], foe = L.players[1] || {};
+  const myName = me['Player Name'];
+  const hostile = foe['Player Name'] && foe['Player Name'] === foe['Ship Name'];
+  const F = Object.fromEntries(L.fleet.map(r => [r['Fleet Type'], r]));
+  const mf = F['Player Fleet 1'] || {}, ef = F['Enemy Fleet 1'] || {};
+  const agg = {me: blank(), foe: blank()};
+  function blank(){ return {shots:0, crit:0, zero:0, hull:0, shield:0, mit:0, iso_mit:0, apex:0, total:0, iso:0, crit_mit:0} }
+  let rounds = 0, myShieldDown = null, foeShieldDown = null;
+  const abilities = new Set(), tech = new Set(), foeAbil = new Set();
+  for(const e of L.events){
+    rounds = Math.max(rounds, num(e['Round']));
+    const mine = e['Attacker Name'] === myName;
+    if(e['Type'] === 'Officer Ability' && e['Ability Owner Name'] && e['Ability Owner Name'] !== '--') (mine ? abilities : foeAbil).add(e['Ability Owner Name']);
+    if(/Tech/i.test(e['Type']) && mine && e['Ability Owner Name'] !== '--') tech.add(e['Ability Owner Name']);
+    if(e['Type'] === 'Shield Depleted'){ if(e['Target Ship'] === me['Ship Name'] && e['Target Name'] !== foe['Player Name']) myShieldDown ??= num(e['Round']); else foeShieldDown ??= num(e['Round']) }
+    if(e['Type'] !== 'Attack') continue;
+    const a = mine ? agg.me : agg.foe;
+    a.shots++; if(e['Critical Hit?'] === 'YES') a.crit++;
+    const t = num(e['Total Damage']), i = num(e['Total Isolytic Damage']);
+    if(t + i === 0) a.zero++;
+    a.hull += num(e['Hull Damage']); a.shield += num(e['Shield Damage']); a.mit += num(e['Mitigated Damage']);
+    a.iso_mit += num(e['Mitigated Isolytic Damage']); a.apex += num(e['Mitigated Apex Barrier']);
+    a.total += t; a.iso += i; a.crit_mit += num(e['Mitigated Critical Damage']);
+  }
+  for(const k of ['me','foe']){ const a = agg[k]; a.raw = a.total + a.iso; a.landed = a.hull + a.shield }
+  const outcome = (me['Outcome'] || '').toUpperCase();
+  const foeHull = num(foe['Hull Health']), foeHullLeft = num(foe['Hull Health Remaining']);
+  const myHull = num(me['Hull Health']), myHullLeft = num(me['Hull Health Remaining']);
+  const r = {name, me, foe, hostile, mf, ef, agg, rounds, outcome, foeHullLeftPct: pct(foeHullLeft, foeHull), myHullLeftPct: pct(myHullLeft, myHull),
+    abilities, tech, foeAbil, crew:[me['Officer One'], me['Officer Two'], me['Officer Three']].filter(x => x && x !== '--'),
+    foeCrew:[foe['Officer One'], foe['Officer Two'], foe['Officer Three']].filter(x => x && x !== '--'), myShieldDown, foeShieldDown,
+    when: me['Timestamp'] || '', strength: pct(num(foe['Ship Strength']), num(me['Ship Strength']))};
+  r.reasons = reasons(r);
+  r.verdict = verdict(r);
+  return r;
+}
+
+const FIX = {
+  apex:{t:'Apex Shred', pvp:'incursion-pvp.html#fix-apex', pve:'crew-guide.html#fix-apex'},
+  iso:{t:'more non-isolytic damage', pvp:'incursion-pvp.html#fix-apex', pve:'crew-guide.html#fix-damage'},
+  mit:{t:'piercing and accuracy', pvp:'incursion-pvp.html#fix-theirshields', pve:'crew-guide.html#fix-defense'},
+  race:{t:'more damage', pvp:'incursion-pvp.html#fix-apex', pve:'crew-guide.html#fix-damage'},
+  tank:{t:'mitigation and Apex Barrier', pvp:'incursion-pvp.html#fix-hard', pve:'crew-guide.html#fix-survive'},
+  shield:{t:'more staying power', pvp:'incursion-pvp.html#fix-shields', pve:'crew-guide.html#fix-survive'},
+  isodef:{t:'Isolytic Defense', pvp:'incursion-pvp.html#fix-st', pve:'crew-guide.html#fix-iso'},
+  crit:{t:'crit reduction', pvp:'incursion-pvp.html#fix-crit', pve:'crew-guide.html#fix-crits'},
+  gap:{t:'bonuses against stronger ships', pvp:'incursion-pvp.html#fix-stronger'}
+};
+function fixLink(k, r){
+  const f = FIX[k];
+  if(!f) return '';
+  const href = r.hostile ? f.pve : f.pvp;
+  return href ? `<span class="fix"><a href="${href}">Officers${r.hostile ? '' : ' and tech'} that give ${esc(f.t)} ▸</a></span>` : '';
+}
+function reasons(r){
+  const out = [], m = r.agg.me, f = r.agg.foe, loss = r.outcome === 'DEFEAT';
+  // the race
+  if(loss && r.foeHullLeftPct > 0){
+    const more = r.foeHullLeftPct / Math.max(0.01, 1 - r.foeHullLeftPct);
+    out.push({k:'race', w: 100, title: r.foeHullLeftPct <= 0.15 ? 'So close' : 'Not enough damage',
+      text:`They had ${P(r.foeHullLeftPct)} of their hull left after ${r.rounds} round${r.rounds === 1 ? '' : 's'}. About ${P(more)} more damage would have finished them first.`});
+  }
+  if(!r.hostile && r.strength >= 1.5) out.push({k:'gap', w: 90, title:'Level / strength gap',
+    text:`Their ship strength is ${r.strength.toFixed(1)}× yours. That's a hard gap to make up with crew alone.`});
+  if(!r.hostile && r.strength > 0 && r.strength <= 0.67 && loss) out.push({k:'gap2', w: 60, title:'You were the stronger ship',
+    text:`Your ship strength is ${(1 / r.strength).toFixed(1)}× theirs, so the loss came from crew, tech or the battle triangle rather than raw power.`});
+  // where your damage went
+  const ap = pct(m.apex, m.raw), im = pct(m.iso_mit, m.raw), mt = pct(m.mit, m.raw), cm = pct(m.crit_mit, m.raw);
+  if(ap >= 0.15) out.push({k:'apex', w: ap * 100, title:'Need more Apex Shred',
+    text:`Their Apex Barrier soaked ${P(ap)} of your damage.`});
+  if(im >= 0.30) out.push({k:'iso', w: im * 100, title:'Their Isolytic Defense ate your damage',
+    text:`${P(im)} of your damage was isolytic and got absorbed by their Isolytic Defense${pct(m.iso, m.raw) > 0.6 ? '. Most of your damage is isolytic, so this crew struggles against them' : ''}.`});
+  if(mt >= 0.25){
+    const weak = [['Armour Pierce','Armour','armor piercing'],['Shield Pierce','Shield Deflection','shield piercing'],['Accuracy','Dodge','accuracy']]
+      .map(([a, b, n]) => ({n, r: pct(num(r.mf[a]), num(r.ef[b]))})).filter(x => x.r > 0).sort((x, y) => x.r - y.r)[0];
+    out.push({k:'mit', w: mt * 100, title:'Their mitigation blocked your hits',
+      text:`Their armor, shield deflection and dodge mitigated ${P(mt)} of your damage${weak && weak.r < 1 ? `. Your weakest match-up is ${weak.n} (yours is ${P(weak.r)} of their matching defense)` : ''}.`});
+  }
+  if(cm >= 0.15) out.push({k:'critmit', w: cm * 100, title:'Your crits were blunted', text:`They mitigated ${P(cm)} of your damage from critical hits.`});
+  // what got through to you
+  const through = pct(f.landed, f.raw);
+  if(f.raw > 0 && through >= 0.5) out.push({k:'tank', w: through * 70, title:'Their hits landed hard',
+    text:`${P(through)} of their damage got through to your shields and hull. Your mitigation and Apex Barrier only stopped ${P(1 - through)}.`});
+  const fiso = pct(f.iso, f.raw), fisoMit = pct(f.iso_mit, f.iso);
+  if(fiso >= 0.4 && fisoMit < 0.5) out.push({k:'isodef', w: fiso * 60, title:'Need Isolytic Defense',
+    text:`${P(fiso)} of their damage was isolytic and you only absorbed ${P(fisoMit)} of it.`});
+  const fcrit = pct(f.crit, f.shots);
+  if(f.shots >= 4 && fcrit >= 0.3) out.push({k:'crit', w: fcrit * 60, title:'They crit you a lot',
+    text:`${P(fcrit)} of their hits were critical hits.`});
+  if(r.myShieldDown && loss) out.push({k:'shield', w: 20, title:'Your shields went down in round ' + r.myShieldDown,
+    text:'After that, every hit went straight to your hull.'});
+  out.sort((a, b) => b.w - a.w);
+  return out;
+}
+function verdict(r){
+  const loss = r.outcome === 'DEFEAT';
+  const tips = r.reasons.filter(x => !['race','shield','gap2'].includes(x.k)).slice(0, 2).map(x => x.title + '!');
+  if(!loss){
+    return tips.length ? 'You won. Still: ' + tips.join(' ') : 'Clean win. Nothing big held you back.';
+  }
+  const race = r.reasons.find(x => x.k === 'race');
+  const lead = race ? (race.title === 'So close' ? `So close: ${P(r.foeHullLeftPct)} short!` : `${P(r.foeHullLeftPct)} short on damage!`) : 'Defeat.';
+  const gap = r.reasons.find(x => x.k === 'gap');
+  return [gap ? 'Level discrepancy!' : '', lead, ...tips.filter(t => !gap || !/strength/.test(t))].filter(Boolean).join(' ');
+}
+
+/* ---------- rendering ---------- */
+let FIGHTS = [];
+function card(r){
+  const loss = r.outcome === 'DEFEAT', m = r.agg.me, f = r.agg.foe;
+  const side = (p, crew) => `<b>${esc(titleCase(p['Ship Name']))}</b><span>${esc(p['Player Name'])} · player ${esc(p['Player Level'])} · ship level ${esc(p['Ship Level'])}</span>${crew.length ? `<span>${crew.map(esc).join(' · ')}</span>` : ''}`;
+  const bar = (label, v, color) => `<div class="racerow"><span>${label}</span><div class="track"><div class="fill" style="width:${Math.round(Math.min(1, v) * 100)}%;background:${color}"></div></div><span class="pct">${P(v)}</span></div>`;
+  const row = (k, a) => `<tr><td>${k}</td><td>${big(a.raw)}</td><td>${P(pct(a.landed, a.raw))}</td><td>${P(pct(a.mit, a.raw))}</td><td>${P(pct(a.apex, a.raw))}</td><td>${P(pct(a.iso_mit, a.raw))}</td><td>${P(pct(a.crit, a.shots))}</td></tr>`;
+  return `<article class="fight ${loss ? 'loss' : 'win'}">
+    <div class="ftop"><span class="badge">${loss ? 'Defeat' : 'Victory'}</span><span class="when">${esc(r.when)}${r.me['Location'] ? ' · ' + esc(r.me['Location']) : ''} · ${r.rounds} round${r.rounds === 1 ? '' : 's'} · ${r.hostile ? 'hostile' : 'player'}</span></div>
+    <div class="verdict">${esc(r.verdict)}</div>
+    <div class="vs"><div class="side">${side(r.me, r.crew)}</div><div class="vsmark">vs</div><div class="side r">${side(r.foe, r.foeCrew)}</div></div>
+    <div class="race">${bar('Their hull taken', 1 - r.foeHullLeftPct, 'var(--orange)')}${bar('Your hull lost', 1 - r.myHullLeftPct, 'var(--loss)')}</div>
+    <ul class="reasons">${r.reasons.filter(x => x.k !== 'race' || loss).map(x => `<li><b>${esc(x.title)}</b><span>${esc(x.text)}</span>${fixLink(x.k, r)}</li>`).join('') || '<li class="ok"><b>Nothing stood out</b><span>Your damage got through and theirs was well mitigated.</span></li>'}</ul>
+    <details><summary>The numbers</summary><div class="tablewrap"><table>
+      <tr><th>Attacker</th><th>Damage</th><th>Got through</th><th>Mitigated</th><th>Apex Barrier</th><th>Isolytic def.</th><th>Crit rate</th></tr>
+      ${row('You', m)}${row('Them', f)}</table></div>
+      <p class="small">Below deck and other abilities that fired: ${[...r.abilities].map(esc).join(', ') || 'none'}.${r.tech.size ? ` Tech: ${[...r.tech].map(esc).join(', ')}.` : ''}</p>
+    </details>
+  </article>`;
+}
+function comparison(){
+  const groups = {};
+  FIGHTS.forEach(r => { const k = r.foe['Player Name'] + '|' + r.foe['Ship Name']; (groups[k] = groups[k] || []).push(r) });
+  const html = Object.values(groups).filter(g => g.some(r => r.outcome === 'DEFEAT') && g.some(r => r.outcome !== 'DEFEAT')).map(g => {
+    const wins = g.filter(r => r.outcome !== 'DEFEAT'), losses = g.filter(r => r.outcome === 'DEFEAT');
+    const people = r => new Set([...r.crew, ...r.abilities]);
+    const inAll = list => { const sets = list.map(people); return [...sets[0]].filter(n => sets.every(s => s.has(n))) };
+    const inAny = list => new Set(list.flatMap(r => [...people(r)]));
+    const winOnly = inAll(wins).filter(n => !inAny(losses).has(n));
+    const lossOnly = inAll(losses).filter(n => !inAny(wins).has(n));
+    const avg = list => list.reduce((s, r) => s + r.agg.me.raw, 0) / list.length;
+    const dw = avg(wins), dl = avg(losses);
+    return `<section class="compare"><h2>Your wins vs your losses against ${esc(titleCase(g[0].foe['Ship Name']))}</h2>
+      <span>${wins.length} win${wins.length === 1 ? '' : 's'}, ${losses.length} loss${losses.length === 1 ? '' : 'es'}. Your wins dealt ${big(dw)} damage on average; your losses ${big(dl)}${dl > 0 ? ` (${P(dw / dl - 1)} more in the wins)` : ''}.</span>
+      ${winOnly.length ? `<span>In every win, never in a loss: ${winOnly.map(n => `<span class="chip w">${esc(n)}</span>`).join('')}</span>` : ''}
+      ${lossOnly.length ? `<span>In every loss, never in a win: ${lossOnly.map(n => `<span class="chip l">${esc(n)}</span>`).join('')}</span>` : ''}
+      ${!winOnly.length && !lossOnly.length ? '<span>The same officers showed up in wins and losses, so the difference came down to rolls (crits and procs) rather than crew.</span>' : '<span class="small">Counts bridge officers and every officer whose ability fired in the fight.</span>'}
+    </section>`;
+  }).join('');
+  document.getElementById('compare').innerHTML = html;
+}
+function render(){
+  FIGHTS.sort((a, b) => Date.parse(b.when) - Date.parse(a.when) || 0);
+  document.getElementById('out').innerHTML = FIGHTS.map(card).join('');
+  comparison();
+}
+async function load(files){
+  const err = document.getElementById('err'); const bad = [];
+  for(const file of files){
+    try{ FIGHTS.push(analyze(file.name, await file.text())) }catch(e){ bad.push(`${file.name}: ${e.message}`) }
+  }
+  err.textContent = bad.join(' ');
+  render();
+}
+document.getElementById('files').addEventListener('change', e => { load([...e.target.files]); e.target.value = '' });
+const drop = document.getElementById('drop');
+['dragenter','dragover'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add('over') }));
+['dragleave','drop'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove('over') }));
+drop.addEventListener('drop', e => load([...e.dataTransfer.files]));
+</script>
+</body>
+</html>

@@ -4,6 +4,7 @@ Free, fan-made crew pickers for Star Trek Fleet Command.
 
 - **Hostile Crew Guide** (`crew-guide.html`): hostiles, mission bosses, armadas, outposts, waves, mining, loot and more.
 - **Red Alert: PvP Crews** (`incursion-pvp.html`, switch on with the Red Alert button): ship vs ship, hitting and defending stations, and raiding, with ship lists by class and officer portraits.
+- **Why did I lose?!** (`lose.html`): drop in combat logs exported from the game and get a plain answer per fight (damage shortfall, Apex Barrier, mitigation, Isolytic Defense, crits, level gap), plus what changed between your wins and losses against the same enemy. Logs are read in the browser and never uploaded.
 
 Both pages are single, self-contained HTML files. They need no server code and no build step.
 

@@ -1281,6 +1281,7 @@ document.addEventListener('click', e => {
   else if (d.ownforget) { OWN = null; S.ownMsg = ''; try { ['own', 'pvp-own', 'pvp-ships', 'pvp-tech'].forEach(k => localStorage.removeItem(k)) } catch {} render() }
   else if (d.fixfrom) { const type = TYPES.find(x => x.id === S.type); S.fix.fight = type.pvp ? 'pvp' : type.fight || 'hostiles'; S.view = 'fix'; render(); scrollTo(0, 0) }
 });
+{ const h = location.hash.match(/^#fix-([a-zA-Z]+)$/); if (h && PROBLEMS.some(x => x[0] === h[1])) { S.view = 'fix'; S.fix.problem = h[1]; S.fix.fight = 'hostiles' } }
 render();
 </script>
 

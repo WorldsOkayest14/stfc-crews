@@ -535,6 +535,7 @@ footer a{color:var(--a4)}
     <section class="view" id="v-fix" hidden>
       <h1 class="q">What's going wrong?</h1>
       <p class="lead">Pick the problem. You'll get the officers, tech and crews that counter it, with the ones you have first.</p>
+      <p class="lead">Lost a specific fight? <a href="lose.html">Upload its combat log</a> and get the answer for that fight.</p>
       <div class="chips" id="fixF" role="group" aria-label="Problem"></div>
       <div id="fixOut" style="display:flex;flex-direction:column;gap:14px"></div>
     </section>
@@ -1131,7 +1132,9 @@ function setSkin(s){
 document.getElementById('skinSel').addEventListener('change', e => setSkin(e.target.value));
 let sk = 'red'; try{ sk = localStorage.getItem('pvp-skin') || 'red' }catch(e){}
 setSkin(sk);
-loadState(); render();
+loadState();
+{ const h = location.hash.match(/^#fix-([a-z]+)$/); if(h && PROBLEMS.some(p => p.id === h[1])){ st.view = 'fix'; fixSel = h[1] } }
+render();
 </script>
 
 </body>
