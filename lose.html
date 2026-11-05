@@ -71,6 +71,8 @@ th{font-family:var(--f-display);letter-spacing:.06em;text-transform:uppercase;fo
 .chip{display:inline-block;padding:1px 9px;border-radius:999px;font-weight:600;margin:2px 4px 2px 0;font-size:.9rem}
 .chip.w{background:color-mix(in srgb,var(--win) 20%,transparent);color:var(--win)}
 .chip.l{background:color-mix(in srgb,var(--loss) 20%,transparent);color:var(--loss)}
+.tried{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:4px}
+.tried li span{display:block;opacity:.85;font-size:.9rem}
 .foot{font-size:.82rem;color:var(--ink-2);border-left:6px solid var(--line);padding-left:12px;max-width:75ch}
 @media (min-width:800px){.frame{grid-template-columns:110px minmax(0,1fr)}.elbow{border-top-left-radius:60px;min-height:90px}.bar{height:22px}}
 @media (max-width:520px){.vs{grid-template-columns:minmax(0,1fr)}.side.r{text-align:left}.vsmark{display:none}.racerow{grid-template-columns:6.4em minmax(0,1fr) 3.2em}}
@@ -101,7 +103,7 @@ th{font-family:var(--f-display);letter-spacing:.06em;text-transform:uppercase;fo
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const num = x => { const v = parseFloat(String(x ?? '').replace(/,/g, '')); return isFinite(v) ? v : 0 };
 const pct = (a, b) => b > 0 ? a / b : 0;
-const P = x => Math.round(x * 100) + '%';
+const P = x => x > 0 && x < 0.005 ? '<1%' : Math.round(x * 100) + '%';
 function big(n){
   const a = Math.abs(n);
   for(const [d, s] of [[1e12,'T'],[1e9,'B'],[1e6,'M'],[1e3,'K']]) if(a >= d) return (n / d).toFixed(a / d >= 100 ? 0 : a / d >= 10 ? 1 : 2) + s;
@@ -189,7 +191,8 @@ const FIX = {
   shield:{t:'more staying power', pvp:'incursion-pvp.html#fix-shields', pve:'crew-guide.html#fix-survive'},
   isodef:{t:'Isolytic Defense', pvp:'incursion-pvp.html#fix-st', pve:'crew-guide.html#fix-iso'},
   crit:{t:'crit reduction', pvp:'incursion-pvp.html#fix-crit', pve:'crew-guide.html#fix-crits'},
-  gap:{t:'bonuses against stronger ships', pvp:'incursion-pvp.html#fix-stronger'}
+  gap:{t:'bonuses against stronger ships', pvp:'incursion-pvp.html#fix-stronger'},
+  outdmg:{t:'bonuses against stronger ships', pvp:'incursion-pvp.html#fix-stronger', pve:'crew-guide.html#fix-damage'}
 };
 function fixLink(k, r){
   const f = FIX[k];
@@ -201,9 +204,22 @@ function reasons(r){
   const out = [], m = r.agg.me, f = r.agg.foe, loss = r.outcome === 'DEFEAT';
   // the race
   if(loss && r.foeHullLeftPct > 0){
-    const more = r.foeHullLeftPct / Math.max(0.01, 1 - r.foeHullLeftPct);
-    out.push({k:'race', w: 100, title: r.foeHullLeftPct <= 0.15 ? 'So close' : 'Not enough damage',
-      text:`They had ${P(r.foeHullLeftPct)} of their hull left after ${r.rounds} round${r.rounds === 1 ? '' : 's'}. About ${P(more)} more damage would have finished them first.`});
+    const left = r.foeHullLeftPct, taken = 1 - left, rr = `${r.rounds} round${r.rounds === 1 ? '' : 's'}`;
+    if(left > 0.5){
+      const need = 1 / Math.max(0.001, taken);
+      out.push({k:'race', w: 100, title: taken < 0.1 ? 'You barely scratched them' : 'Not enough damage',
+        text:`You took only ${P(taken)} of their hull in ${rr}. To win in the same time you'd have needed about ${need >= 10 ? Math.round(need) : need.toFixed(1)}× the damage, so this isn't a crew-tweak gap.`});
+    } else {
+      out.push({k:'race', w: 100, title: left <= 0.15 ? 'So close' : 'Not enough damage',
+        text:`They had ${P(left)} of their hull left after ${rr}. About ${P(left / taken)} more damage would have finished them first.`});
+    }
+  }
+  // raw firepower: damage per round before any defenses
+  const myRpr = m.raw / Math.max(1, r.rounds), foeRpr = f.raw / Math.max(1, r.rounds);
+  if(loss && myRpr > 0 && foeRpr / myRpr >= 2){
+    const x = foeRpr / myRpr;
+    out.push({k:'outdmg', w: 88, title:`They hit ${x >= 10 ? Math.round(x) : x.toFixed(1)}× harder`,
+      text:`Before any defenses, their attacks carried ${x.toFixed(1)}× your damage per round (${big(foeRpr)} vs ${big(myRpr)}).${!r.hostile && r.strength >= 1.3 ? ' That comes mostly from their higher ship level and stats, not their crew.' : ''}`});
   }
   if(!r.hostile && r.strength >= 1.5) out.push({k:'gap', w: 90, title:'Level / strength gap',
     text:`Their ship strength is ${r.strength.toFixed(1)}× yours. That's a hard gap to make up with crew alone.`});
@@ -213,8 +229,16 @@ function reasons(r){
   const ap = pct(m.apex, m.raw), im = pct(m.iso_mit, m.raw), mt = pct(m.mit, m.raw), cm = pct(m.crit_mit, m.raw);
   if(ap >= 0.15) out.push({k:'apex', w: ap * 100, title:'Need more Apex Shred',
     text:`Their Apex Barrier soaked ${P(ap)} of your damage.`});
-  if(im >= 0.30) out.push({k:'iso', w: im * 100, title:'Their Isolytic Defense ate your damage',
-    text:`${P(im)} of your damage was isolytic and got absorbed by their Isolytic Defense${pct(m.iso, m.raw) > 0.6 ? '. Most of your damage is isolytic, so this crew struggles against them' : ''}.`});
+  const fiso = pct(f.iso, f.raw), fisoMit = pct(f.iso_mit, f.iso);
+  if(im >= 0.30){
+    // both sides isolytic and both absorbing most of it: it cancels out, so don't lead with it
+    const wash = fiso >= 0.4 && fisoMit >= 0.75;
+    out.push(wash
+      ? {k:'isowash', w: 10, title:'Isolytic Defense was a wash',
+         text:`Their Isolytic Defense absorbed ${P(im)} of your damage, but yours absorbed ${P(fisoMit)} of their isolytic damage too. Neither side gained here, so it didn't decide the fight.`}
+      : {k:'iso', w: im * 100, title:'Their Isolytic Defense ate your damage',
+         text:`${P(im)} of your damage was isolytic and got absorbed by their Isolytic Defense${pct(m.iso, m.raw) > 0.6 ? '. Most of your damage is isolytic, so this crew struggles against them' : ''}.`});
+  }
   if(mt >= 0.25){
     const weak = [['Armour Pierce','Armour','armor piercing'],['Shield Pierce','Shield Deflection','shield piercing'],['Accuracy','Dodge','accuracy']]
       .map(([a, b, n]) => ({n, r: pct(num(r.mf[a]), num(r.ef[b]))})).filter(x => x.r > 0).sort((x, y) => x.r - y.r)[0];
@@ -226,7 +250,6 @@ function reasons(r){
   const through = pct(f.landed, f.raw);
   if(f.raw > 0 && through >= 0.5) out.push({k:'tank', w: through * 70, title:'Their hits landed hard',
     text:`${P(through)} of their damage got through to your shields and hull. Your mitigation and Apex Barrier only stopped ${P(1 - through)}.`});
-  const fiso = pct(f.iso, f.raw), fisoMit = pct(f.iso_mit, f.iso);
   if(fiso >= 0.4 && fisoMit < 0.5) out.push({k:'isodef', w: fiso * 60, title:'Need Isolytic Defense',
     text:`${P(fiso)} of their damage was isolytic and you only absorbed ${P(fisoMit)} of it.`});
   const fcrit = pct(f.crit, f.shots);
@@ -239,12 +262,13 @@ function reasons(r){
 }
 function verdict(r){
   const loss = r.outcome === 'DEFEAT';
-  const tips = r.reasons.filter(x => !['race','shield','gap2'].includes(x.k)).slice(0, 2).map(x => x.title + '!');
+  const tips = r.reasons.filter(x => !['race','shield','gap2','isowash'].includes(x.k)).slice(0, 2).map(x => x.title + '!');
   if(!loss){
     return tips.length ? 'You won. Still: ' + tips.join(' ') : 'Clean win. Nothing big held you back.';
   }
   const race = r.reasons.find(x => x.k === 'race');
-  const lead = race ? (race.title === 'So close' ? `So close: ${P(r.foeHullLeftPct)} short!` : `${P(r.foeHullLeftPct)} short on damage!`) : 'Defeat.';
+  const lead = !race ? 'Defeat.' : race.title === 'So close' ? `So close: ${P(r.foeHullLeftPct)} short!`
+    : r.foeHullLeftPct > 0.5 ? `Only took ${P(1 - r.foeHullLeftPct)} of their hull!` : `${P(r.foeHullLeftPct)} short on damage!`;
   const gap = r.reasons.find(x => x.k === 'gap');
   return [gap ? 'Level discrepancy!' : '', lead, ...tips.filter(t => !gap || !/strength/.test(t))].filter(Boolean).join(' ');
 }
@@ -261,7 +285,7 @@ function card(r){
     <div class="verdict">${esc(r.verdict)}</div>
     <div class="vs"><div class="side">${side(r.me, r.crew)}</div><div class="vsmark">vs</div><div class="side r">${side(r.foe, r.foeCrew)}</div></div>
     <div class="race">${bar('Their hull taken', 1 - r.foeHullLeftPct, 'var(--orange)')}${bar('Your hull lost', 1 - r.myHullLeftPct, 'var(--loss)')}</div>
-    <ul class="reasons">${r.reasons.filter(x => x.k !== 'race' || loss).map(x => `<li><b>${esc(x.title)}</b><span>${esc(x.text)}</span>${fixLink(x.k, r)}</li>`).join('') || '<li class="ok"><b>Nothing stood out</b><span>Your damage got through and theirs was well mitigated.</span></li>'}</ul>
+    <ul class="reasons">${r.reasons.filter(x => x.k !== 'race' || loss).map(x => `<li><b>${esc(x.title)}</b><span>${esc(x.text)}</span>${x.k === 'outdmg' && r.reasons.some(y => y.k === 'gap') ? '' : fixLink(x.k, r)}</li>`).join('') || '<li class="ok"><b>Nothing stood out</b><span>Your damage got through and theirs was well mitigated.</span></li>'}</ul>
     <details><summary>The numbers</summary><div class="tablewrap"><table>
       <tr><th>Attacker</th><th>Damage</th><th>Got through</th><th>Mitigated</th><th>Apex Barrier</th><th>Isolytic def.</th><th>Crit rate</th></tr>
       ${row('You', m)}${row('Them', f)}</table></div>
@@ -288,7 +312,25 @@ function comparison(){
       ${!winOnly.length && !lossOnly.length ? '<span>The same officers showed up in wins and losses, so the difference came down to rolls (crits and procs) rather than crew.</span>' : '<span class="small">Counts bridge officers and every officer whose ability fired in the fight.</span>'}
     </section>`;
   }).join('');
-  document.getElementById('compare').innerHTML = html;
+  // only losses against the same ship at the same levels: rank the crews you tried
+  const tried = {};
+  FIGHTS.filter(r => r.outcome === 'DEFEAT').forEach(r => {
+    const k = [r.foe['Player Name'], r.foe['Ship Name'], r.foe['Ship Level'], r.me['Ship Name'], r.me['Ship Level']].join('|');
+    (tried[k] = tried[k] || []).push(r);
+  });
+  const html2 = Object.values(tried).filter(g => g.length >= 2 && !groups[g[0].foe['Player Name'] + '|' + g[0].foe['Ship Name']].some(r => r.outcome !== 'DEFEAT')).map(g => {
+    const per = r => r.agg.me.landed / Math.max(1, r.rounds);
+    const ranked = [...g].sort((a, b) => per(b) - per(a));
+    const best = ranked[0], worst = ranked[ranked.length - 1];
+    const allTiny = ranked.every(r => r.foeHullLeftPct > 0.85);
+    return `<section class="compare"><h2>Crews you tried against ${esc(g[0].foe['Player Name'])}'s ${esc(titleCase(g[0].foe['Ship Name']))}</h2>
+      <span>${g.length} losses, your level ${esc(g[0].me['Ship Level'])} ${esc(titleCase(g[0].me['Ship Name']))} vs their level ${esc(g[0].foe['Ship Level'])}. Ranked by damage that got through per round:</span>
+      <ol class="tried">${ranked.map(r => `<li><b>${r.crew.map(esc).join(' · ') || 'Unknown crew'}</b> <span>${big(per(r))} a round · took ${P(1 - r.foeHullLeftPct)} of their hull</span></li>`).join('')}</ol>
+      ${ranked.length > 1 && per(worst) > 0 ? `<span>Best crew landed ${(per(best) / per(worst)).toFixed(1)}× the damage of the worst.</span>` : ''}
+      ${allTiny ? `<span>But no crew took even 15% of their hull, so the crew isn't what's losing this fight. Close the ship-level gap, or pick a different target.</span>` : ''}
+    </section>`;
+  }).join('');
+  document.getElementById('compare').innerHTML = html + html2;
 }
 function render(){
   FIGHTS.sort((a, b) => Date.parse(b.when) - Date.parse(a.when) || 0);
