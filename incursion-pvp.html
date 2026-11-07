@@ -1127,10 +1127,11 @@ function setSkin(s){
   if(s === 'red') delete root.dataset.alien; else root.dataset.alien = '';
   document.getElementById('skinSel').value = s;
   document.getElementById('alertTag').textContent = SKINS[s];
-  try{ localStorage.setItem('pvp-skin', s) }catch(e){}
+  try{ localStorage.setItem('look', s === 'red' ? 'fed' : s); localStorage.setItem('pvp-skin', s) }catch(e){}
 }
 document.getElementById('skinSel').addEventListener('change', e => setSkin(e.target.value));
-let sk = 'red'; try{ sk = localStorage.getItem('pvp-skin') || 'red' }catch(e){}
+/* "look" is shared with the Hostile Crew Guide; Federation (fed) means each page's own default look */
+let sk = 'red'; try{ const lk = localStorage.getItem('look'); sk = lk ? (lk === 'fed' ? 'red' : lk) : (localStorage.getItem('pvp-skin') || 'red') }catch(e){}
 setSkin(sk);
 loadState();
 { const h = location.hash.match(/^#fix-([a-z]+)$/); if(h && PROBLEMS.some(p => p.id === h[1])){ st.view = 'fix'; fixSel = h[1] } }

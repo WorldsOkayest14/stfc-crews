@@ -201,6 +201,137 @@ button.mini { background: none; border: 0; padding: 0; color: inherit; text-alig
 @media (prefers-reduced-motion: reduce) { .btn:active { transform: none } }
 </style>
 
+<style id="looks">
+/* Species looks, shared with the PvP page. Federation (no data-skin) is the guide's own orange look.
+   Each alien look sets --a1..--a4, --hd, --glyph and shape tokens; here they're mapped onto the guide's colours and parts. */
+.lc-head { flex-wrap: wrap }
+.skinpick { display: flex; align-items: center; gap: 8px; flex: none; font-family: var(--f-display); letter-spacing: .1em; text-transform: uppercase; font-size: .78rem; color: var(--ink-2) }
+.skinpick select { border: 0; background: var(--peach); color: #000; font-family: var(--f-display); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; font-size: .9rem; padding: 6px 12px; border-radius: 999px }
+@media (max-width: 480px) { .skinpick { font-size: .7rem } .skinpick select { font-size: .8rem; padding: 4px 10px } }
+:root[data-alien] { --orange: var(--a1); --peach: var(--a2); --lilac: var(--a4); --rust: var(--a3); --gold: var(--a4); --tan: var(--a2); --violet: var(--a1); --sky: var(--a4) }
+:root[data-alien] body { background-color: var(--bg); background-image: var(--bgimg, none) }
+:root[data-alien] .title { color: var(--hd) }
+:root[data-alien] .title small, :root[data-alien] .role, :root[data-alien] .subhead { color: var(--glyph) }
+:root[data-alien] .lhead h2, :root[data-alien] .ask h1, :root[data-alien] .thank h3 { color: var(--hd) }
+:root[data-alien] .lc-corner, :root[data-alien] .lc-top::after { border-top-left-radius: var(--elbow) }
+:root[data-alien] .lc-rail .seg { background: var(--a2) } :root[data-alien] .lc-rail .seg.a { background: var(--a3) }
+:root[data-alien] .lc-rail .seg.b { background: var(--a4) } :root[data-alien] .lc-rail .fill { background: var(--a1) }
+:root[data-alien] .lhead::before, :root[data-alien] .lhead::after { border-radius: 0 }
+:root[data-alien] :is(.btn, .views button, .homelink, .ra, .skinpick select) { clip-path: var(--bclip, none); border-radius: var(--brad, 0) }
+:root[data-alien] :is(.tag, .tog, .pick, .rk) { border-radius: var(--brad, 0) }
+:root[data-alien] .pick { border-color: var(--a1) }
+:root[data-alien] .skinpick select { background: var(--a4) }
+:root[data-alien] .answer { border-left-color: var(--pf); border-radius: calc(var(--elbow) / 2) 0 0 calc(var(--elbow) / 2) }
+:root[data-alien] :is(.grp, .alt, .empty, .warn, .tip, .note) { border-radius: var(--brad, 0) }
+:root[data-alien] .empty { border-color: var(--a3) }
+:root[data-alien] .sheet { border-top-left-radius: var(--elbow) }
+:root[data-alien] :is(.portrait, .mini img, .alt img) { border-radius: var(--frad, 4px) }
+:root[data-alien] .ra:hover { background: var(--hi) }
+</style>
+<style id="looks-gen">
+/* looks:start */
+/* Klingon: black field, red/orange/amber, triangle clusters, cut-corner outlines, bladed spines with teeth */
+:root[data-skin="klingon"]{--bg:#000;--surface:#0d0302;--surface-2:#1a0604;--ink:#f6e3cf;--ink-2:#d9a066;--line:#5a1408;
+  --a1:#e3260d;--a2:#f2780f;--a3:#a3150a;--a4:#f7b21b;--hi:#e3260d;--glyph:#c9df3a;--hd:#f7b21b;--round:0px;--elbow:0px;
+  --pf:#f2780f;--pfr:#f7b21b;--pw:2px;--pclip:polygon(16px 0,calc(100% - 16px) 0,100% 16px,100% calc(100% - 16px),calc(100% - 16px) 100%,16px 100%,0 calc(100% - 16px),0 16px);
+  --bclip:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%);--mark:polygon(50% 0,100% 100%,0 100%);
+  --bgimg:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='48.5'%3E%3Cpath d='M0 0L14 24.25L28 0M0 48.5L14 24.25L28 48.5M0 24.25H28' fill='none' stroke='%23e3260d' stroke-opacity='.09'/%3E%3C/svg%3E")}
+:root[data-skin="klingon"] .lc-corner{clip-path:polygon(45% 0,100% 0,100% 100%,0 100%,0 45%)}
+:root[data-skin="klingon"] .lc-bar span:nth-child(1){clip-path:polygon(0 0,100% 0,calc(100% - 10px) 100%,0 100%)}
+:root[data-skin="klingon"] .lc-bar span:nth-child(2){background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='16' preserveAspectRatio='none'%3E%3Cpath d='M1 16L9 0L17 16Z' fill='%23f7b21b'/%3E%3C/svg%3E") repeat-x left/18px 100%}
+:root[data-skin="klingon"] .lc-bar span:nth-child(3){background:var(--a2);border-radius:0;clip-path:polygon(0 0,100% 50%,0 100%)}
+:root[data-skin="klingon"] .lc-top::after{clip-path:polygon(100% 0,100% 100%,0 100%)}
+:root[data-skin="klingon"] .lc-rail .seg{background:var(--a4);clip-path:polygon(0 0,100% 0,100% 20%,70% 30%,100% 40%,100% 60%,70% 70%,100% 80%,100% 100%,0 100%)}
+:root[data-skin="klingon"] .lc-rail .seg.a{background:var(--a2);clip-path:polygon(0 0,100% 0,100% 12%,72% 18%,100% 24%,100% 36%,72% 42%,100% 48%,100% 60%,72% 66%,100% 72%,100% 100%,0 100%)}
+:root[data-skin="klingon"] .lc-rail .seg.b{background:var(--a3);clip-path:polygon(0 0,100% 50%,0 100%)}
+:root[data-skin="klingon"] .lc-rail .fill{border-radius:0;clip-path:polygon(0 0,100% 0,100% calc(100% - 60px),0 100%)}
+:root[data-skin="klingon"] .lhead::before{flex:0 0 22px;clip-path:polygon(0 50%,100% 0,100% 100%)}
+:root[data-skin="klingon"] .lhead::after{height:12px;clip-path:polygon(0 0,calc(100% - 22px) 0,100% 50%,calc(100% - 22px) 100%,0 100%)}
+/* Romulan: teal and sea-green on black, magenta highlights, stepped outline frames, forward-slanted blocks */
+:root[data-skin="romulan"]{--bg:#000;--surface:#03110f;--surface-2:#072019;--ink:#e3f5ee;--ink-2:#8fc2b0;--line:#14443b;
+  --a1:#1fb3ad;--a2:#3e9a6e;--a3:#15604b;--a4:#e8357c;--hi:#e8357c;--glyph:#a9e9cb;--hd:#2fd0c8;--round:0px;--elbow:0px;
+  --pf:#1fb3ad;--pfr:#e8357c;--pw:2px;--pclip:polygon(0 0,100% 0,100% calc(100% - 22px),calc(100% - 22px) 100%,22px 100%,0 calc(100% - 22px));
+  --bclip:polygon(14px 0,100% 0,calc(100% - 14px) 100%,0 100%);--mark:polygon(30% 0,100% 0,70% 100%,0 100%);
+  --bgimg:linear-gradient(rgba(31,179,173,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(31,179,173,.06) 1px,transparent 1px);background-size:32px 32px}
+:root[data-skin="romulan"] body{background-size:32px 32px}
+:root[data-skin="romulan"] .lc-corner{clip-path:polygon(0 38%,38% 38%,38% 0,100% 0,100% 100%,0 100%)}
+:root[data-skin="romulan"] .lc-bar span:nth-child(2){background:repeating-linear-gradient(115deg,var(--a2) 0 16px,transparent 16px 22px)}
+:root[data-skin="romulan"] .lc-bar span:nth-child(3){background:var(--a4);border-radius:0;clip-path:polygon(30% 0,100% 0,70% 100%,0 100%)}
+:root[data-skin="romulan"] .lc-top::after{clip-path:polygon(100% 0,100% 100%,0 100%)}
+:root[data-skin="romulan"] .lc-rail .seg{background:var(--a2);clip-path:polygon(0 12%,100% 0,100% 88%,0 100%)}
+:root[data-skin="romulan"] .lc-rail .seg.a{background:var(--a1);clip-path:polygon(0 8%,100% 0,100% 92%,0 100%)}
+:root[data-skin="romulan"] .lc-rail .seg.b{background:#d8f5ea;clip-path:polygon(0 20%,100% 0,100% 80%,0 100%)}
+:root[data-skin="romulan"] .lc-rail .fill{border-radius:0;clip-path:polygon(0 0,100% 0,100% 100%,40% 100%,40% calc(100% - 30px),0 calc(100% - 30px))}
+:root[data-skin="romulan"] .lhead::before{flex:0 0 30px;height:18px;background:var(--a4);clip-path:polygon(35% 0,100% 0,65% 100%,0 100%)}
+:root[data-skin="romulan"] .lhead::after{height:4px}
+/* Cardassian: cyan and dusty pink on black inside heavy brown bezels, sheared tiles, hexagon field */
+:root[data-skin="cardassian"]{--bg:#000;--surface:#100809;--surface-2:#1d1011;--ink:#f6e8ec;--ink-2:#c9a3ae;--line:#4d2827;
+  --a1:#6fdce8;--a2:#e9a3bf;--a3:#6a3530;--a4:#f2d15c;--hi:#e9a3bf;--glyph:#86e6f0;--hd:#6fdce8;--round:0px;--elbow:0px;
+  --pf:#6a3530;--pfr:#e9a3bf;--pw:6px;--prad:24px 24px 8px 8px;--frad:10px 10px 3px 3px;
+  --bclip:polygon(0 0,calc(100% - 10px) 0,100% 100%,10px 100%);--mark:polygon(0 0,70% 0,100% 100%,30% 100%);
+  --bgimg:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='42' height='72.75'%3E%3Cpath d='M21 0L42 12.1V36.4L21 48.5L0 36.4V12.1Z M21 48.5V72.75' fill='none' stroke='%23b0684f' stroke-opacity='.12'/%3E%3C/svg%3E")}
+:root[data-skin="cardassian"] .lc-corner{background:var(--a3);border-top-left-radius:28px}
+:root[data-skin="cardassian"] .lc-top::before{background:var(--a3)}
+:root[data-skin="cardassian"] .lc-top::after{border-top-left-radius:18px}
+:root[data-skin="cardassian"] .lc-bar span:nth-child(1){background:var(--a3)}
+:root[data-skin="cardassian"] .lc-bar span:nth-child(2){background:repeating-linear-gradient(65deg,var(--a1) 0 14px,transparent 14px 20px)}
+:root[data-skin="cardassian"] .lc-bar span:nth-child(3){background:var(--a4);border-radius:0;clip-path:polygon(0 0,70% 0,100% 100%,30% 100%)}
+:root[data-skin="cardassian"] .lc-rail .seg{background:var(--a2);clip-path:polygon(0 0,100% 15%,100% 100%,0 85%)}
+:root[data-skin="cardassian"] .lc-rail .seg.a{background:var(--a1);clip-path:polygon(0 0,100% 10%,100% 100%,0 90%)}
+:root[data-skin="cardassian"] .lc-rail .seg.b{background:var(--a4)}
+:root[data-skin="cardassian"] .lc-rail .fill{background:var(--a3);border-bottom-left-radius:28px}
+:root[data-skin="cardassian"] .lhead::before{flex:0 0 34px;background:var(--a1);clip-path:polygon(0 0,70% 0,100% 100%,30% 100%)}
+:root[data-skin="cardassian"] .lhead::after{height:5px;background:var(--a2)}
+/* Bajoran: teal and parchment tan on black, copper accents, rounded frames, circles and orbits */
+:root[data-skin="bajoran"]{--bg:#020605;--surface:#071512;--surface-2:#0d221d;--ink:#f1e7d6;--ink-2:#c6b395;--line:#1f4038;
+  --a1:#1fa38a;--a2:#e8cba2;--a3:#8b5a36;--a4:#6fe3cf;--hi:#e8cba2;--glyph:#e8cba2;--hd:#6fe3cf;--round:999px;--elbow:60px;
+  --pf:#1fa38a;--pfr:#e8cba2;--pw:2px;--prad:26px;--brad:999px;--frad:50%;--markr:50%;
+  --bgimg:repeating-radial-gradient(circle at 100% 0,transparent 0 46px,rgba(31,163,138,.07) 46px 47px)}
+:root[data-skin="bajoran"] .lc-corner{background:var(--a3);border-top-left-radius:60px}
+:root[data-skin="bajoran"] .lc-top::before{background:var(--a3)}
+:root[data-skin="bajoran"] .lc-top::after{border-top-left-radius:26px}
+:root[data-skin="bajoran"] .lc-bar span:nth-child(1){background:var(--a3)}
+:root[data-skin="bajoran"] .lc-bar span:nth-child(2){background:radial-gradient(circle,var(--a2) 0 5px,transparent 6px) repeat-x left/18px 100%}
+:root[data-skin="bajoran"] .lc-bar span:nth-child(3){background:var(--a1)}
+:root[data-skin="bajoran"] .lc-rail .seg{background:var(--a2);border-radius:999px}
+:root[data-skin="bajoran"] .lc-rail .seg.a{background:var(--a1);border-radius:999px}
+:root[data-skin="bajoran"] .lc-rail .seg.b{background:transparent;border:3px solid var(--a2);border-radius:50%;aspect-ratio:1;min-height:0}
+:root[data-skin="bajoran"] .lc-rail .fill{background:var(--a3);border-radius:999px 999px 999px 40px}
+:root[data-skin="bajoran"] .lhead::before{flex:0 0 20px;height:20px;background:transparent;border:3px solid var(--a2);border-radius:50%}
+:root[data-skin="bajoran"] .lhead::after{height:3px;border-radius:999px;background:var(--a1)}
+/* Borg: thin glowing green lines on black, brass rings, crosshairs, hard square edges */
+:root[data-skin="borg"]{--bg:#000;--surface:#020a03;--surface-2:#081609;--ink:#d9f7d4;--ink-2:#8fbf88;--line:#1b3d1e;
+  --a1:#39d353;--a2:#8a7a35;--a3:#17451c;--a4:#b8f5a6;--hi:#39d353;--glyph:#73e483;--hd:#39d353;--round:0px;--elbow:0px;
+  --pf:#2c9c3e;--pfr:#8a7a35;--pw:1px;--frad:50%;--markr:50%;
+  --bgimg:radial-gradient(circle at 85% 8%,rgba(57,211,83,.10),transparent 40%),linear-gradient(rgba(57,211,83,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(57,211,83,.05) 1px,transparent 1px)}
+:root[data-skin="borg"] body{background-size:auto,24px 24px,24px 24px}
+:root[data-skin="borg"] .lc-corner{background:radial-gradient(circle at 70% 70%,transparent 0 22px,var(--a2) 22px 26px,transparent 26px),linear-gradient(var(--a1),var(--a1)) 0 0/4px 100% no-repeat,linear-gradient(var(--a1),var(--a1)) 0 0/100% 4px no-repeat}
+:root[data-skin="borg"] .lc-top::before,:root[data-skin="borg"] .lc-top::after{display:none}
+:root[data-skin="borg"] .lc-bar{height:4px;margin-top:0}
+:root[data-skin="borg"] .lc-bar span{background:var(--a1)}
+:root[data-skin="borg"] .lc-bar span:nth-child(2){background:var(--a2)}
+:root[data-skin="borg"] .lc-bar span:nth-child(3){background:var(--a4);border-radius:0}
+:root[data-skin="borg"] .lc-rail{gap:0;background:linear-gradient(var(--a1),var(--a1)) 0 0/4px 100% no-repeat}
+:root[data-skin="borg"] .lc-rail .seg,:root[data-skin="borg"] .lc-rail .seg.a,:root[data-skin="borg"] .lc-rail .seg.b,:root[data-skin="borg"] .lc-rail .fill{background:radial-gradient(circle at 2px 50%,var(--a4) 0 4px,transparent 5px),radial-gradient(circle at 2px 50%,transparent 0 10px,var(--a2) 10px 12px,transparent 13px);border-radius:0}
+:root[data-skin="borg"] .btn,:root[data-skin="borg"] .skinpick select{background:transparent;color:var(--a1);border:1px solid var(--a1)}
+:root[data-skin="borg"] .lhead::before{flex:0 0 22px;height:22px;background:radial-gradient(circle,var(--a1) 0 3px,transparent 4px 7px,var(--a1) 7px 9px,transparent 10px),linear-gradient(var(--a1),var(--a1)) center/100% 1px no-repeat,linear-gradient(var(--a1),var(--a1)) center/1px 100% no-repeat}
+:root[data-skin="borg"] .lhead::after{height:1px}
+/* Dominion: violet frames with arched tops, orchid and gold accents */
+:root[data-skin="dominion"]{--bg:#000;--surface:#0b0817;--surface-2:#161028;--ink:#efe8ff;--ink-2:#b3a6d9;--line:#30265f;
+  --a1:#5b4bc4;--a2:#d78bd9;--a3:#33287a;--a4:#f2a72c;--hi:#d78bd9;--glyph:#d9a6e0;--hd:#f2a72c;--round:12px;--elbow:0px;
+  --pf:#5b4bc4;--pfr:#d78bd9;--pw:6px;--prad:50% 50% 6px 6px/38px 38px 6px 6px;--brad:14px 14px 3px 3px;--frad:50% 50% 4px 4px;--mark:polygon(50% 0,100% 50%,50% 100%,0 50%)}
+:root[data-skin="dominion"] .lc-corner{background:var(--a1);border-top-left-radius:50% 70%}
+:root[data-skin="dominion"] .lc-top::before{background:var(--a1)}
+:root[data-skin="dominion"] .lc-bar span:nth-child(2){background:var(--a2)}
+:root[data-skin="dominion"] .lc-bar span:nth-child(3){background:var(--a4);border-radius:0 999px 999px 0}
+:root[data-skin="dominion"] .lc-rail .seg{background:var(--a2);border-radius:50% 50% 0 0/18px 18px 0 0}
+:root[data-skin="dominion"] .lc-rail .seg.a{background:var(--a3);border-radius:50% 50% 0 0/30px 30px 0 0}
+:root[data-skin="dominion"] .lc-rail .seg.b{background:var(--a4)}
+:root[data-skin="dominion"] .lc-rail .fill{background:var(--a1);border-radius:0 0 0 22px}
+:root[data-skin="dominion"] .lhead::before{flex:0 0 18px;height:18px;background:var(--a4);clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}
+:root[data-skin="dominion"] .lhead::after{height:8px;border-radius:999px;background:var(--a1)}
+/* looks:end */
+</style>
 </head>
 <body>
 <div class="lc">
@@ -211,6 +342,17 @@ button.mini { background: none; border: 0; padding: 0; color: inherit; text-alig
       <div class="title"><span data-t="appName"></span><small>Officers M92 · Crews M87 &amp; Blue’s Crews</small></div>
       <a class="homelink" href="./" aria-label="Home">◂<span class="hl"> Home</span></a>
       <div class="spacer"></div>
+      <label class="skinpick" for="lookSel">Look
+        <select id="lookSel">
+          <option value="fed">Federation</option>
+          <option value="klingon">Klingon</option>
+          <option value="romulan">Romulan</option>
+          <option value="cardassian">Cardassian</option>
+          <option value="bajoran">Bajoran</option>
+          <option value="borg">Borg</option>
+          <option value="dominion">Dominion</option>
+        </select>
+      </label>
       <a class="ra" href="incursion-pvp.html" title="Red alert: PvP only" aria-label="Turn on Red alert: PvP only"><span class="knob" aria-hidden="true"></span>Red alert</a>
     </div>
   </header>
@@ -218,6 +360,23 @@ button.mini { background: none; border: 0; padding: 0; color: inherit; text-alig
   <main class="lc-main" id="app"></main>
 </div>
 <div id="sheet-root"></div>
+<script>
+/* Look picker. Shared with the PvP page through the "look" key; "fed" is each page's own default look. */
+(function(){
+  const LOOKS = ['fed','klingon','romulan','cardassian','bajoran','borg','dominion'];
+  const sel = document.getElementById('lookSel'), root = document.documentElement;
+  function setLook(v, save){
+    if(!LOOKS.includes(v)) v = 'fed';
+    if(v === 'fed'){ delete root.dataset.skin; delete root.dataset.alien } else { root.dataset.skin = v; root.dataset.alien = '' }
+    sel.value = v;
+    if(save) try{ localStorage.setItem('look', v) }catch(e){}
+  }
+  let v = 'fed';
+  try{ v = localStorage.getItem('look') || (localStorage.getItem('pvp-skin') || 'fed').replace(/^red$/, 'fed') }catch(e){}
+  setLook(v, false);
+  sel.addEventListener('change', e => setLook(e.target.value, true));
+})();
+</script>
 
 <script>
 if (location.hash === '#red-alert') location.replace('incursion-pvp.html');

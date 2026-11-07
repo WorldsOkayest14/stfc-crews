@@ -23,4 +23,5 @@ Live as `lose.html`. Possible next steps:
 
 ## Source files
 - `src/pvp/`: template and data for `incursion-pvp.html`. Rebuild with `python3 src/pvp/build.py`.
+- `src/looks/sync.py`: copies the species looks from the PvP template into `crew-guide.html`. Run it after changing a look in the template, then rebuild the PvP page.
 - `crew-guide.html` is edited directly.
